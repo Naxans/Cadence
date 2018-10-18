@@ -1,0 +1,24 @@
+﻿<Page
+    x:Class="Cadence.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Cadence"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <TextBlock Name="deviceListTextBlock" HorizontalAlignment="Left" Margin="56,125,0,0" Text="Bluetooth device list:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
+        <ListView x:Name="deviceListView" HorizontalAlignment="Left" Height="210" Margin="56,148,0,0" VerticalAlignment="Top" Width="402" ItemClick="deviceListView_ItemClick" IsItemClickEnabled="True"/>
+        <TextBlock Name="DeviceNameTextBlock" HorizontalAlignment="Left" Margin="180,450,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Name="BTAddresTextBlock" HorizontalAlignment="Left" Margin="180,475,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Name="FirmwareTextBlock" HorizontalAlignment="Left" Margin="180,500,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Name="HardwareTextBlock" HorizontalAlignment="Left" Margin="180,525,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Name="connectionStatusTextBlock" HorizontalAlignment="Left" Margin="180,550,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Name="readingsTextBlock" HorizontalAlignment="Left" Margin="180,575,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Name="subscriptionStatusTextBlock" HorizontalAlignment="Left" Margin="180,600,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock x:Name="subscriptionResultTextBlock" HorizontalAlignment="Left" Margin="180,625,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Height="44" Width="210" Grid.ColumnSpan="2"/>
+        <TextBlock x:Name="subscriptionResultTextBlock2" HorizontalAlignment="Left" Margin="180,650,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Height="44" Width="210" Grid.ColumnSpan="2"/>
+    </Grid>
+</Page>
