@@ -10,8 +10,12 @@
 
     <Grid>
         <TextBlock Name="deviceListTextBlock" HorizontalAlignment="Left" Margin="56,125,0,0" Text="Bluetooth device list:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
-        <ListView x:Name="deviceListView" HorizontalAlignment="Left" Height="210" Margin="56,148,0,0" VerticalAlignment="Top" Width="402" ItemClick="deviceListView_ItemClick" IsItemClickEnabled="True"/>
-        <TextBlock Name="DeviceNameTextBlock" HorizontalAlignment="Left" Margin="180,450,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <ListView x:Name="deviceListView" HorizontalAlignment="Left" Height="210" Margin="56,170,0,0" VerticalAlignment="Top" Width="402" ItemClick="deviceListView_ItemClick" IsItemClickEnabled="True">
+            <!--<ListView.KeyboardAccelerators>
+                <KeyboardAccelerator Key="Enter" Invoked="deviceListViewEnterKey" />
+            </ListView.KeyboardAccelerators>-->
+            </ListView>
+            <TextBlock Name="DeviceNameTextBlock" HorizontalAlignment="Left" Margin="180,450,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBlock Name="BTAddresTextBlock" HorizontalAlignment="Left" Margin="180,475,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBlock Name="FirmwareTextBlock" HorizontalAlignment="Left" Margin="180,500,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBlock Name="HardwareTextBlock" HorizontalAlignment="Left" Margin="180,525,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>

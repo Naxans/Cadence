@@ -35,6 +35,10 @@ namespace Cadence
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        Windows.Storage.StorageFolder localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
+        object StorageBluetoothAddress;
+
         private BluetoothLEDevice cadence;
         private ObservableCollection<BluetoothInformationWrapper> informationOfFoundDevices;
         private GattCharacteristicWrapper selectedCharacteristicWrapper;
@@ -53,6 +57,13 @@ namespace Cadence
 
         public MainPage()
         {
+            StorageBluetoothAddress = localSettings.Values["StorageBluetoothAddress"]; //laden van de info 
+            if (StorageBluetoothAddress == null) //als de parameter nog niet is aangemaakt (spel wordt voor de eerste keer gestart) wordt die hier aangemaakt enopgeslagen
+            {
+                localSettings.Values["StorageBluetoothAddress"] = "";
+                StorageBluetoothAddress = localSettings.Values["StorageBluetoothAddress"];
+            }
+
             this.InitializeComponent();
             informationOfFoundDevices = new ObservableCollection<BluetoothInformationWrapper>();
             deviceListView.ItemsSource = informationOfFoundDevices;
@@ -74,6 +85,21 @@ namespace Cadence
             // Start the watcher.
             deviceWatcher.Start();
 
+            //if (StorageBluetoothAddress != null)
+            //{
+            //    for (int i = 0; i < informationOfFoundDevices.Count; i += 1) // zoeken naar de bluetooth device
+            //    {
+            //        if (informationOfFoundDevices[i].DeviceInformation.Id == StorageBluetoothAddress.ToString())
+            //        {
+            //            //select the device in de devicelist
+            //            //deviceListView.SelectedIndex = i;
+            //            //  deviceListView.SelectedItem = i;
+            //            deviceListView.SelectedItems.Add(i);
+            //            // deviceListView.Select();
+            //        }
+            //    }
+            //}
+
             TimerConnectToSensor.Interval = TimeSpan.FromMilliseconds(1000);
             TimerConnectToSensor.Tick += TimerConnectToSensor_Tick;
             TimerConnectToSensor.Start();
@@ -88,12 +114,13 @@ namespace Cadence
         private async void deviceListView_ItemClick(object sender, ItemClickEventArgs e)
         {
             selectedDeviceInfoWrapper = (BluetoothInformationWrapper)e.ClickedItem;
+            localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
             if (selectedDeviceInfoWrapper != null)
             {
                //await SaveSensorInfo();
                 // Note: BluetoothLEDevice.FromIdAsync must be called from a UI thread because it may prompt for consent.
                 cadence = await BluetoothLEDevice.FromIdAsync(selectedDeviceInfoWrapper.DeviceInformation.Id);
-                await SaveSensorInfo();
+                //await SaveSensorInfo();
                 if (cadence == null)
                 {
                     connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
@@ -365,8 +392,38 @@ namespace Cadence
             () =>
             {
                 informationOfFoundDevices.Add(new BluetoothInformationWrapper(args));
+
+                if (StorageBluetoothAddress != null)
+                {
+                    for (int i = 0; i < informationOfFoundDevices.Count; i += 1) // zoeken naar de bluetooth device
+                    {
+                        if (informationOfFoundDevices[i].DeviceInformation.Id == StorageBluetoothAddress.ToString())
+                        {
+                            //select the device in de devicelist
+                            //deviceListView.Focus();
+                            deviceListView.SelectedIndex = i;
+                            //deviceListView.SelectedItems.Select(i) = true;
+
+                            //deviceListView.SelectedItem = i;
+                            //deviceListView.SelectedItems.Add(i);
+                           
+                        }
+                    }
+                }
+
             });
         }
+        //private void deviceListViewEnterKey(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        //{
+        //    try
+        //    {
+        //        args.Handled = true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine(ex.Message);
+        //    }
+        //}
 
         private async void Cadence_ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
@@ -378,7 +435,7 @@ namespace Cadence
                 {
                     connectionStatusTextBlock.Text = "Sensor: Lost connection";
                     connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                    TimerConnectToSensor.Start();
+                    //TimerConnectToSensor.Start();
                 }
             });
         }
@@ -433,95 +490,6 @@ namespace Cadence
             });
         }
 
-        public async void ReadSensorInfoOnStart()
-        {
-            try
-            {
-                var folderfound = await ApplicationData.Current.LocalFolder.TryGetItemAsync("bommafitshowdata");
-                if (folderfound == null) //als de folder nnnbommasoftdata niet bestaat dan maken we deze aan
-                {
-                    await ApplicationData.Current.LocalFolder.CreateFolderAsync("bommafitshowdata");
-                }
-                var filefound = await ApplicationData.Current.LocalFolder.TryGetItemAsync("\\bommafitshowdata\\bommafitsensorinfo");
-                if (filefound == null) // als de file bommasoftlist niet bestaat dan maken we deze aan
-                {
-                    await SaveSensorInfo();
-                }
-                await Task.Delay(100); //eventjes wachten als de file bommalist voor de eerste keer moet worden aangemaakt
-                var Serializer = new DataContractSerializer(typeof(BluetoothInformationWrapper));
-                using (var stream = await ApplicationData.Current.LocalFolder.OpenStreamForReadAsync("\\bommafitshowdata\\bommafitsensorinfo"))
-                {
-                    if (stream.Length > 138) //als de lijst geen records bevat (lenght = 138) dan gaan onderstaande regel niet uitvoeren anders krijgen we een fout
-                    {
-                        selectedDeviceInfoWrapper = (BluetoothInformationWrapper)Serializer.ReadObject(stream);
-                    }
-
-                }
-                //if (EditMode == false) // bij het starten zetten we bommasoft altijd in normaal mode dwz zonder werkbalk
-                //{
-                //    for (int i = 0; i < Tiles.Count; i++)
-                //    {
-                //        Tiles[i].TextBoxItemEnable = false;
-                //    }
-                //}
-                //this.FolderListView.ItemsSource = this.Tiles; //schrijf alle items in Tiles naar de ListView met naam FolderListView
-                //InfoForResulTextBlock(3); //Text = "Tiles on Screen = " + gridview.Items.Count
-                //Debug.WriteLine("Tiles on Screen = " + FolderListView.Items.Count);
-                //if (Tiles.Count == 0)
-                //{
-                //    TopCommands.Visibility = Visibility.Visible;
-                //    EditMode = true;
-                //}
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-
-        }
-
-        public async Task SaveSensorInfo()
-        {
-            try
-            {
-                //een nieuwe lijst moet altijd worden geschreven vandaar ReplaceExisting
-                StorageFile userdetailsfile = await ApplicationData.Current.LocalFolder.CreateFileAsync(@"\\bommafitshowdata\\bommafitsensorinfo", CreationCollisionOption.ReplaceExisting);
-
-
-                //IRandomAccessStream raStream = await userdetailsfile.OpenAsync(FileAccessMode.ReadWrite);
-                //using (IOutputStream outStream = raStream.GetOutputStreamAt(0))
-                //{
-                //    //DataContractSerializer serializer = new DataContractSerializer(typeof(ObservableCollection<Tile>));
-                //    DataContractSerializer serializer = new DataContractSerializer(typeof(BluetoothInformationWrapper));
-                //    //serializer.WriteObject(outStream.AsStreamForWrite(), Tiles);
-                //    serializer.WriteObject(outStream.AsStreamForWrite(), selectedDeviceInfoWrapper);
-                //    await outStream.FlushAsync();
-                //    outStream.Dispose();
-                //    raStream.Dispose();                                                                                                                                                                           
-
-
-                //    //using (FileStream writer = new FileStream("c:/temp/file.xml", FileMode.Create, FileAccess.Write))
-                //    //{
-                //    //DataContractSerializer ser = new DataContractSerializer(typeof(BluetoothInformationWrapper));
-                //    //ser.WriteObject(writer, selectedDeviceInfoWrapper);
-                //}
-
-
-
-
-
-                //   await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => gridview.SelectedItem = null); //deslect alle items in gridview of anders blijft de laatste geselecteerd
-                //FolderListView.IsEnabled = true;
-                //InfoForResulTextBlock(1); //Text = "The data has been saved successfully"
-                Debug.WriteLine("The data has been saved successfully");
-            }
-            catch
-            {
-                //InfoForResulTextBlock(2); //Text = "FAULT! The data has not been saved"
-                Debug.WriteLine("FAULT! The data has not been saved");
-            }
-
-        }
 
     }
 }
