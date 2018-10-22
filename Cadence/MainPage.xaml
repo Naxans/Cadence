@@ -6,24 +6,37 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Height="535" Width="960" MinWidth="960" MinHeight="535" FontFamily="Segoe UI" HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
 
     <Grid>
-        <TextBlock Name="deviceListTextBlock" HorizontalAlignment="Left" Margin="56,125,0,0" Text="Bluetooth device list:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
-        <ListView x:Name="deviceListView" HorizontalAlignment="Left" Height="210" Margin="56,170,0,0" VerticalAlignment="Top" Width="402" ItemClick="deviceListView_ItemClick" IsItemClickEnabled="True">
-            <!--<ListView.KeyboardAccelerators>
-                <KeyboardAccelerator Key="Enter" Invoked="deviceListViewEnterKey" />
-            </ListView.KeyboardAccelerators>-->
-            </ListView>
-        <TextBlock Name="ErrorTextBlock" HorizontalAlignment="Left" Margin="180,425,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock Name="DeviceNameTextBlock" HorizontalAlignment="Left" Margin="180,450,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock Name="BTAddresTextBlock" HorizontalAlignment="Left" Margin="180,475,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock Name="FirmwareTextBlock" HorizontalAlignment="Left" Margin="180,500,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock Name="HardwareTextBlock" HorizontalAlignment="Left" Margin="180,525,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock Name="connectionStatusTextBlock" HorizontalAlignment="Left" Margin="180,550,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock Name="readingsTextBlock" HorizontalAlignment="Left" Margin="180,575,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock Name="subscriptionStatusTextBlock" HorizontalAlignment="Left" Margin="180,600,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBlock x:Name="subscriptionResultTextBlock" HorizontalAlignment="Left" Margin="180,625,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Height="44" Width="210" Grid.ColumnSpan="2"/>
-        <TextBlock x:Name="subscriptionResultTextBlock2" HorizontalAlignment="Left" Margin="180,650,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Height="44" Width="210" Grid.ColumnSpan="2"/>
+        <!--<StackPanel Height="535" VerticalAlignment="Top">-->
+            <StackPanel Orientation="Horizontal" Height="535">
+                <StackPanel Width="480" BorderBrush="Black" BorderThickness="2,2,0,2">
+                    <TextBlock Name="deviceListTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="Choose bluetooth non paired device:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
+                    <ListView x:Name="deviceListView" HorizontalAlignment="Left" Height="495" Margin="30,0,0,0" VerticalAlignment="Top" Width="402" ItemClick="deviceListView_ItemClick" IsItemClickEnabled="True">
+                    <!--<ListView.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Enter" Invoked="deviceListViewEnterKey" />
+                    </ListView.KeyboardAccelerators>-->
+                    </ListView>               
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="480" BorderThickness="2,2,2,2" BorderBrush="Black">
+                    <TextBlock Name="InfoSensorTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="Information from Sensor:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
+
+                    <TextBlock Name="ErrorTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" FontFamily="Segoe UI"/>
+                    <TextBlock Name="connectionStatusTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                    <TextBlock Name="DeviceNameTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                    <TextBlock Name="BTAddresTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                    <TextBlock Name="FirmwareTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                    <TextBlock Name="HardwareTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                    <TextBlock Name="readingsTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                    <TextBlock Name="subscriptionStatusTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                    <TextBlock x:Name="subscriptionResultTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" Width="210" Grid.ColumnSpan="2"/>
+                    <TextBlock x:Name="subscriptionResultTextBlock2" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" Width="210" Grid.ColumnSpan="2"/>
+ 
+                </StackPanel>
+            
+            </StackPanel>
+        <!--</StackPanel>-->
+
     </Grid>
 </Page>
