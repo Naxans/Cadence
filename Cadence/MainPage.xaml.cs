@@ -40,6 +40,8 @@ namespace Cadence
         object StorageBluetoothAddress;
 
         //private bool FirstConnectionError = false;
+        private bool NoError = true;
+       private bool SubscribeMeasurement = false;
 
         private BluetoothLEDevice cadence;
         private ObservableCollection<BluetoothInformationWrapper> informationOfFoundDevices;
@@ -59,7 +61,7 @@ namespace Cadence
         string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.Devices.Aep.IsConnected" };
 
 
-        //!!!!!de sensoren mogen niet paired zijn!!!!
+        //!!!!!de sensoren moeten non paired zijn!!!!
         public MainPage()
         {
             StorageBluetoothAddress = localSettings.Values["StorageBluetoothAddress"]; //laden van de info 
@@ -93,23 +95,6 @@ namespace Cadence
             ////The second parameter is a set of properties that should be available for a device. In this case we requested DeviceAddress and IsConnected properties, but I used it just for the demo. I assume that you will not able to find many different devices with Wahoo name around, so, you can simply remove this parameter.
             ////Finally, we have to pass the DeviceInformationKind flag. In our case it should be AssociationEndpoint that is true for all Bluetooth LE devices that advertise their interface
             ////deviceWatcher = DeviceInformation.CreateWatcher("System.ItemNameDisplay:~~\"Wahoo\"", new string[] {"System.Devices.Aep.DeviceAddress","System.Devices.Aep.IsConnected" },DeviceInformationKind.AssociationEndpoint);
-
-            // Query for extra properties you want returned
-            //string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.Devices.Aep.IsConnected" };
-
-            //DeviceWatcher deviceWatcher = DeviceInformation.CreateWatcher(BluetoothLEDevice.GetDeviceSelectorFromPairingState(false), requestedProperties, DeviceInformationKind.AssociationEndpoint);
-
-            ////<*****lijst maken van bleutooth devices*****>
-            //// Register event handlers before starting the watcher.
-            //// Added, Updated and Removed are required to get all nearby devices
-            //deviceWatcher.Added += DeviceWatcher_Added;//create list of all bleutooth devices
-            //deviceWatcher.Updated += DeviceWatcher_Updated;
-            //deviceWatcher.Removed += DeviceWatcher_Removed;
-            //// EnumerationCompleted and Stopped are optional to implement.
-            //deviceWatcher.EnumerationCompleted += DeviceWatcher_EnumerationCompleted;
-            //deviceWatcher.Stopped += DeviceWatcher_Stopped;
-            //// Start the watcher.
-            //deviceWatcher.Start();
 
             TimerConnectToSensor.Interval = TimeSpan.FromMilliseconds(1000);
             TimerConnectToSensor.Tick += TimerConnectToSensor_Tick;
@@ -146,12 +131,9 @@ namespace Cadence
         GattCharacteristicsResult result2;
         private async void TimerConnectToSensor_Tick(object sender, object e)
         {
-            //cadence = await BluetoothLEDevice.FromIdAsync(selectedDeviceInfoWrapper.DeviceInformation.Id);
-           // result = await cadence.GetGattServicesAsync(); //ik moet de services hier gaan halen of anders geraakt de sensor nooit geconnecteerd
-            //await GetInformationSensor();
-          //  if (cadence == null || cadence.ConnectionStatus.ToString() == "Disconnected")
-                if (cadence == null )
-                {
+            NoError = true;
+            if (cadence == null )
+            {
                 connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
                 connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                 return;
@@ -163,7 +145,19 @@ namespace Cadence
                 TimerConnectToSensor.Stop();
             }
             await  GetInformationSensor();
+            if (NoError == false)
+            {
+                ErrorTextBlock.Text = "Error sensor!";
+                ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                return;
+            }
             await  GetValuesSensor();
+            if (NoError == false)
+            {
+                ErrorTextBlock.Text = "Error sensor!";
+                ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                return;
+            }
             ErrorTextBlock.Text = "Sensor is ready to work!";
             ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
             localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
@@ -175,6 +169,7 @@ namespace Cadence
         {
             try
             {
+
                 ErrorTextBlock.Text = "";
                 connectionStatusTextBlock.Text = "";
                 DeviceNameTextBlock.Text = "";
@@ -185,40 +180,20 @@ namespace Cadence
                 subscriptionStatusTextBlock.Text = "";
                 subscriptionResultTextBlock.Text = "";
                 subscriptionResultTextBlock2.Text = "";
-
+                NoError = true;
+                SubscribeMeasurement = false;
                 selectedDeviceInfoWrapper = (BluetoothInformationWrapper)e.ClickedItem;
 
-                //for (int ii = 0; ii < ApprovedSensor.Length; ii += 1) //is eigenlijk niet goed omdat ik nu enkel Wahoo CADENCE BC14 sensor toelaat, eigelijk als de services en Characteristic die ik nodig aanwezig zijn is het type sensor niet belangrijk 
-                //{
-
-
-                //if (selectedDeviceInfoWrapper.DeviceInformation.Name == ApprovedSensor[ii] || StorageBluetoothAddress.ToString() == "")
-                //if (selectedDeviceInfoWrapper.DeviceInformation.Id == StorageBluetoothAddress.ToString() || StorageBluetoothAddress.ToString() == "")
-                //{
-                //localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
-               
                 cadence = await BluetoothLEDevice.FromIdAsync(selectedDeviceInfoWrapper.DeviceInformation.Id);
-                //result = await cadence.GetGattServicesAsync();//ik moet de service hier gaan halen of anders geraakt de sensor nooit geconnecteerd
                 //await GetInformationSensor();
                 if (selectedDeviceInfoWrapper != null)
                 {
-
-                    //await SaveSensorInfo();
-                    // Note: BluetoothLEDevice.FromIdAsync must be called from a UI thread because it may prompt for consent.
-
-                    //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
-                    //await SaveSensorInfo();
-                    //if (cadence == null || cadence.ConnectionStatus.ToString() == "Disconnected")
-                        if (cadence == null)
-                        {
-                        //deviceWatcher.Stop();
-
+                    if (cadence == null)
+                    {
                         connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
                         connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                        //FirstConnectionError = true;
 
-                        // deviceWatcher.Start();
-
+                        //soms krijg heb ik een probleem bij het uitlezen van de services, met onderstaande regel probeer ik terug een connectie te maken
                         TimerConnectToSensor.Start();
                         return;
                     }
@@ -228,8 +203,22 @@ namespace Cadence
                         connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
                     }
                     await GetInformationSensor();
+                    if (NoError == false)
+                    {
+                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        TimerConnectToSensor.Start();
+                        return;
+                    }
                     //Debug.WriteLine("2 sensor is " + cadence.ConnectionStatus.ToString());
                     await  GetValuesSensor();
+                    if (NoError == false)
+                    {
+                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        TimerConnectToSensor.Start();
+                        return;
+                    }
                     ErrorTextBlock.Text = "Sensor is ready to work!";
                     //Debug.WriteLine("3 sensor is " + cadence.ConnectionStatus.ToString());
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
@@ -269,12 +258,23 @@ namespace Cadence
 
         private async void DeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
+            //onderstaande bool TestDoubleDevices is om te beletten dat een ble device meer dan 1 keer in de lijst wordt geschreven
+            bool TestDoubleDevices = true;
             //in realtime wordt er gezocht naar bluetooth device die non paired zijn
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
             () =>
             {
-                //informationOfFoundDevices.Clear();
-                informationOfFoundDevices.Add(new BluetoothInformationWrapper(args));
+                for (int i = 0; i < informationOfFoundDevices.Count; i += 1)
+                {
+                    if (informationOfFoundDevices[i].DeviceInformation.Name.Contains(args.Name))
+                    {
+                        TestDoubleDevices = false;
+                    }
+                }
+                if (TestDoubleDevices == true)
+                {
+                    informationOfFoundDevices.Add(new BluetoothInformationWrapper(args));
+                }
             });
         }
 
@@ -303,7 +303,6 @@ namespace Cadence
             }
         }
 
-
         int valueprevious;
         int valuetimeprevious;
         int valuetime;
@@ -316,7 +315,9 @@ namespace Cadence
         private async void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args) //event handler used to process characteristic value change notification and indication events sent by a Bluetooth LE device.
         {
             try
-            { 
+            {
+                if (SubscribeMeasurement == false) return;
+                if (NoError == false) return;
                 reader = DataReader.FromBuffer(args.CharacteristicValue);
                 inputx = new byte[reader.UnconsumedBufferLength];
                 
@@ -358,37 +359,18 @@ namespace Cadence
                         {
                             secondtestnull = secondtestnull + 1;
                         }
-                        //Debug.WriteLine("cadencecounter hex = " + cadenceCounter);
-                        //Debug.WriteLine("cadencecounter dec = " + value);
-                        //Debug.WriteLine("cadencetime hex = " + cadenceTime);
-                        //Debug.WriteLine("valuetime = " + valuetime);
-                        //Debug.WriteLine("valuetimeprevious = " + valuetimeprevious);
                         valuetimeprevious = valuetime;
                         valueprevious = value;
 
                     });
-                    //}
-
             }
             catch (Exception ex)
             {
-                //Debug.WriteLine("cadencecounter hex = " + cadenceCounter);
-                //Debug.WriteLine("cadencecounter dec = " + value);
-                //Debug.WriteLine("cadencetime hex = " + cadenceTime);
-                //Debug.WriteLine("valuetime = " + valuetime);
-                //Debug.WriteLine("valuetimeprevious = " + valuetimeprevious);
-
-                //Debug.WriteLine("cadencetime dec = " + result);
-                //Debug.WriteLine("string hex = " + inputx[0] +":" + inputx[1] + ":" + inputx[2] + ":" + inputx[3] + ":" + inputx[4]);
                 Debug.WriteLine("Fault Characteristic_ValueChanged " + ex);
-
-
             }
         }
         private async Task GetInformationSensor()
         {
-            //if (FirstConnectionError == true) //als er een op een normale manier is opgestart en we stoppen dan met fietsen danwordt de connectie verbroken. Als we dan opnieuw beginnen met fietsen geeft onderstaande code instabiele counter en toeren per minute
-            //{
             string BluetoothAddressHex = cadence.BluetoothAddress.ToString("x");  // convert decimal to hex
             for (int i = 2; i < BluetoothAddressHex.Length; i += 2) // om het leesbaar te houden plaatsen we om de 2 hex getallen een :
             {
@@ -406,7 +388,7 @@ namespace Cadence
                     //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
                     List<GattDeviceService> services = result.Services.ToList();
                     observableServices = new ObservableCollection<GattServiceWrapper>();
-                    //observableServices.Clear();
+                    observableServices.Clear();
                     foreach (GattDeviceService service in services)
                     {
                         observableServices.Add(new GattServiceWrapper(service));
@@ -414,7 +396,10 @@ namespace Cadence
                 }
                 else
                 {
-                    MessageDialog dialog = new MessageDialog("Kon services niet uitlezen, beweeg aub met sensor en probeer opnieuw");
+                    Debug.WriteLine("could not read the services");
+                   NoError = false;
+                    TimerConnectToSensor.Start();
+                    return;
                 }
                 //<endcode***** get all services and putt them in the list of observableServices*****>
                 //<begincode***** select characteristic GenericAccess level and putt them in the list of observableCharacteristics*****>
@@ -424,16 +409,16 @@ namespace Cadence
                 if (result2.Status == GattCommunicationStatus.Success)
                 {
                     observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
-                    //observableCharacteristics.Clear();
                     foreach (GattCharacteristic characteristic in result2.Characteristics)
                     {
                         observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
                     }
-                    //characteristicsListView.ItemsSource = observableCharacteristics;
                 }
                 else
                 {
-                    //hier nog iets doen?
+                    Debug.WriteLine("could not read the characterstics");
+                    NoError = false;
+                    return;
                 }
                 //<endcode***** select characteristic GenericAccess and putt them in the list of observableCharacteristics*****>
                 //<begincode***** select characteristic device name*****>
@@ -451,7 +436,9 @@ namespace Cadence
                 }
                 else
                 {
-                    //hier nog iets doen?
+                    Debug.WriteLine("could not read the device name");
+                    NoError = false;
+                    return;
                 }
                 //<endcode*****read Firmware revision*****>
 
@@ -471,6 +458,7 @@ namespace Cadence
                 else
                 {
                     //hier nog iets doen?
+                    NoError = false;
                 }
                 //<endcode***** select characteristic device information and putt them in the list of observableCharacteristics*****>
                 //<begincode***** select characteristic Firmware*****>
@@ -488,7 +476,9 @@ namespace Cadence
                 }
                 else
                 {
-                    //hier nog iets doen?
+                    Debug.WriteLine("could not read the firmware revision");
+                    NoError = false;
+                    return;
                 }
                 //<endcode*****read firmware*****>
                 //<begincode***** select characteristic Hardware*****>
@@ -511,7 +501,9 @@ namespace Cadence
                 }
                 else
                 {
-                    //hier nog iets doen?
+                    Debug.WriteLine("could not read the hardware revision");
+                    NoError = false;
+                    return;
                 }
                 //<endcode*****read hardware*****>
 
@@ -521,7 +513,6 @@ namespace Cadence
                 result2 = await service2.GetCharacteristicsAsync();
                 if (result2.Status == GattCommunicationStatus.Success)
                 {
-                    //observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
                     observableCharacteristics.Clear();
                     foreach (GattCharacteristic characteristic in result2.Characteristics)
                     {
@@ -530,7 +521,9 @@ namespace Cadence
                 }
                 else
                 {
-                    //hier nog iets doen?
+                    Debug.WriteLine("could not read the characteristic battery level");
+                    NoError = false;
+                    return;
                 }
                 //<endcode***** select characteristic battery level and putt them in the list of observableCharacteristics*****>
                 //<begincode***** select characteristic battery level*****>
@@ -559,7 +552,9 @@ namespace Cadence
                 }
                 else
                 {
-                    //hier nog iets doen?
+                    Debug.WriteLine("could not read the battery level");
+                    NoError = false;
+                    return;
                 }
                 //<endcode*****read battery level*****>
                 //FirstConnectionError = false;
@@ -584,7 +579,9 @@ namespace Cadence
             }
             else
             {
-                //hier nog iets doen?
+                Debug.WriteLine("could not read the characteristic measurement");
+                NoError = false;
+                return;
             }
             //<endcode***** select characteristic device Measurement and putt them in the list of observableCharacteristics*****>
             //<begincode***** select characteristic measurement*****>
@@ -599,6 +596,7 @@ namespace Cadence
                 if (status == GattCommunicationStatus.Success)
                 {
                     // Server has been informed of clients interest.
+                    SubscribeMeasurement = true;
                     subscriptionStatusTextBlock.Text = "Measurement Subscribed to cadence sensor";
                     subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
                     characteristic2.ValueChanged += Characteristic_ValueChanged;
@@ -607,6 +605,9 @@ namespace Cadence
                 {
                     subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
                     subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                    Debug.WriteLine("could not subscribe to measurement");
+                    NoError = false;
+                    return;
                 }
             }
             else if (properties.HasFlag(GattCharacteristicProperties.Indicate))
@@ -622,6 +623,9 @@ namespace Cadence
                 {
                     subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
                     subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                    Debug.WriteLine("could not indicate to measurement");
+                    NoError = false;
+                    return;
                 }
             }
             //<endcode***** subscribe to measurement*****>
