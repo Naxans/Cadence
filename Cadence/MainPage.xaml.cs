@@ -133,6 +133,7 @@ namespace Cadence
             deviceWatcher.EnumerationCompleted += DeviceWatcher_EnumerationCompleted;
             deviceWatcher.Stopped += DeviceWatcher_Stopped;
             deviceWatcher.Start();
+            Debug.WriteLine(deviceWatcher.Status);
             base.OnNavigatedTo(e);
         }
         protected override void OnNavigatedFrom(NavigationEventArgs e) //OnNavigatedFrom is invoked immediately after the Page is unloaded and is no longer the current source of a parent Frame.
@@ -146,9 +147,11 @@ namespace Cadence
         private async void TimerConnectToSensor_Tick(object sender, object e)
         {
             //cadence = await BluetoothLEDevice.FromIdAsync(selectedDeviceInfoWrapper.DeviceInformation.Id);
-            result = await cadence.GetGattServicesAsync(); //ik moet de service hier gaan halen of anders geraakt de sensor nooit geconnecteerd
-            if (cadence == null || cadence.ConnectionStatus.ToString() == "Disconnected")
-            {
+           // result = await cadence.GetGattServicesAsync(); //ik moet de services hier gaan halen of anders geraakt de sensor nooit geconnecteerd
+            //await GetInformationSensor();
+          //  if (cadence == null || cadence.ConnectionStatus.ToString() == "Disconnected")
+                if (cadence == null )
+                {
                 connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
                 connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                 return;
@@ -173,6 +176,16 @@ namespace Cadence
             try
             {
                 ErrorTextBlock.Text = "";
+                connectionStatusTextBlock.Text = "";
+                DeviceNameTextBlock.Text = "";
+                BTAddresTextBlock.Text = "";
+                FirmwareTextBlock.Text = "";
+                HardwareTextBlock.Text = "";
+                readingsTextBlock.Text = "";
+                subscriptionStatusTextBlock.Text = "";
+                subscriptionResultTextBlock.Text = "";
+                subscriptionResultTextBlock2.Text = "";
+
                 selectedDeviceInfoWrapper = (BluetoothInformationWrapper)e.ClickedItem;
 
                 //for (int ii = 0; ii < ApprovedSensor.Length; ii += 1) //is eigenlijk niet goed omdat ik nu enkel Wahoo CADENCE BC14 sensor toelaat, eigelijk als de services en Characteristic die ik nodig aanwezig zijn is het type sensor niet belangrijk 
@@ -185,17 +198,19 @@ namespace Cadence
                 //localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
                
                 cadence = await BluetoothLEDevice.FromIdAsync(selectedDeviceInfoWrapper.DeviceInformation.Id);
-                result = await cadence.GetGattServicesAsync();//ik moet de service hier gaan halen of anders geraakt de sensor nooit geconnecteerd
-                if (selectedDeviceInfoWrapper != null || cadence.ConnectionStatus.ToString() == "Disconnected")
+                //result = await cadence.GetGattServicesAsync();//ik moet de service hier gaan halen of anders geraakt de sensor nooit geconnecteerd
+                //await GetInformationSensor();
+                if (selectedDeviceInfoWrapper != null)
                 {
 
                     //await SaveSensorInfo();
                     // Note: BluetoothLEDevice.FromIdAsync must be called from a UI thread because it may prompt for consent.
 
-                    Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
+                    //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
                     //await SaveSensorInfo();
-                    if (cadence == null || cadence.ConnectionStatus.ToString() == "Disconnected")
-                    {
+                    //if (cadence == null || cadence.ConnectionStatus.ToString() == "Disconnected")
+                        if (cadence == null)
+                        {
                         //deviceWatcher.Stop();
 
                         connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
@@ -212,11 +227,11 @@ namespace Cadence
                         connectionStatusTextBlock.Text = "Sensor: Connection established!";
                         connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
                     }
-                    await  GetInformationSensor();
-                    Debug.WriteLine("2 sensor is " + cadence.ConnectionStatus.ToString());
+                    await GetInformationSensor();
+                    //Debug.WriteLine("2 sensor is " + cadence.ConnectionStatus.ToString());
                     await  GetValuesSensor();
                     ErrorTextBlock.Text = "Sensor is ready to work!";
-                    Debug.WriteLine("3 sensor is " + cadence.ConnectionStatus.ToString());
+                    //Debug.WriteLine("3 sensor is " + cadence.ConnectionStatus.ToString());
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                     localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
                     //<begincode*****get the value of the cadence counter and te time between two measurements*****>
@@ -296,7 +311,6 @@ namespace Cadence
         string cadenceCounter;
         string cadenceTime;
         float Rotationsresult;
-        //int result2;
         int value;
         byte[] inputx;
         private async void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args) //event handler used to process characteristic value change notification and indication events sent by a Bluetooth LE device.
@@ -386,7 +400,7 @@ namespace Cadence
             if (cadence != null)
             {
                 //<begincode***** get all services and putt them in the list of observableServices*****>
-                //GattDeviceServicesResult result = await cadence.GetGattServicesAsync();
+                 result = await cadence.GetGattServicesAsync();
                 if (result.Status == GattCommunicationStatus.Success)
                 {
                     //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
