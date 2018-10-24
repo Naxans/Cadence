@@ -132,23 +132,27 @@ namespace Cadence
         private async void TimerConnectToSensor_Tick(object sender, object e)
         {
             NoError = true;
-            if (cadence == null )
-            {
-                connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
-                connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                return;
-            }
-            else
-            {
-                connectionStatusTextBlock.Text = "Sensor: Connection established!";
-                connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                TimerConnectToSensor.Stop();
-            }
+            //if (cadence == null )
+            //{
+            //    connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
+            //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+            //    return;
+            //}
+            //else
+            //{
+            //    connectionStatusTextBlock.Text = "Sensor: Connection established!";
+            //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+            //    TimerConnectToSensor.Stop();
+            //}
             await  GetInformationSensor();
             if (NoError == false)
             {
                 ErrorTextBlock.Text = "Error sensor!";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                if(SubscribeMeasurement == true)
+                {
+                characteristic2.ValueChanged -= Characteristic_ValueChanged;
+                }
                 return;
             }
             await  GetValuesSensor();
@@ -156,9 +160,13 @@ namespace Cadence
             {
                 ErrorTextBlock.Text = "Error sensor!";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                if (SubscribeMeasurement == true)
+                {
+                    characteristic2.ValueChanged -= Characteristic_ValueChanged;
+                }
                 return;
             }
-            ErrorTextBlock.Text = "Sensor is ready to work!";
+            ErrorTextBlock.Text = "Found sensor";
             ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
             localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
             //<begincode*****get the value of the cadence counter and te time between two measurements*****>
@@ -169,8 +177,9 @@ namespace Cadence
         {
             try
             {
-
-                ErrorTextBlock.Text = "";
+                //deviceWatcher.Stop();
+                ErrorTextBlock.Text = "Search for the sensor";
+                ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 connectionStatusTextBlock.Text = "";
                 DeviceNameTextBlock.Text = "";
                 BTAddresTextBlock.Text = "";
@@ -188,25 +197,26 @@ namespace Cadence
                 //await GetInformationSensor();
                 if (selectedDeviceInfoWrapper != null)
                 {
-                    if (cadence == null)
-                    {
-                        connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
-                        connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                    //if (cadence == null)
+                    //{
+                    //    connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
+                    //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
 
-                        //soms krijg heb ik een probleem bij het uitlezen van de services, met onderstaande regel probeer ik terug een connectie te maken
-                        TimerConnectToSensor.Start();
-                        return;
-                    }
-                    else
-                    {
-                        connectionStatusTextBlock.Text = "Sensor: Connection established!";
-                        connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                    }
+                    //    //soms krijg heb ik een probleem bij het uitlezen van de services, met onderstaande regel probeer ik terug een connectie te maken
+                    //    TimerConnectToSensor.Start();
+                    //    return;
+                    //}
+                    //else
+                    //{
+                    //    connectionStatusTextBlock.Text = "Sensor: Connection established!";
+                    //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                    //}
                     await GetInformationSensor();
                     if (NoError == false)
                     {
                         ErrorTextBlock.Text = "Error sensor!";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                         TimerConnectToSensor.Start();
                         return;
                     }
@@ -216,10 +226,11 @@ namespace Cadence
                     {
                         ErrorTextBlock.Text = "Error sensor!";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                         TimerConnectToSensor.Start();
                         return;
                     }
-                    ErrorTextBlock.Text = "Sensor is ready to work!";
+                    ErrorTextBlock.Text = "Found sensor";
                     //Debug.WriteLine("3 sensor is " + cadence.ConnectionStatus.ToString());
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                     localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
@@ -312,6 +323,13 @@ namespace Cadence
         float Rotationsresult;
         int value;
         byte[] inputx;
+        StringBuilder hex;
+
+        string Temp0;
+        string Temp1;
+        string Temp2;
+        string Temp3;
+        string Temp4;
         private async void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args) //event handler used to process characteristic value change notification and indication events sent by a Bluetooth LE device.
         {
             try
@@ -325,48 +343,63 @@ namespace Cadence
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                     () =>
                     {
-                        StringBuilder hex = new StringBuilder(inputx.Length * 2);
-                        foreach (byte b in inputx)
-                        hex.AppendFormat("{0:x2}", b);
-                        cadenceCounter = hex[4].ToString() + hex[5].ToString() + hex[2].ToString() + hex[3].ToString(); //formaat is little endian betekent dat we de volgorde moeten veranderen
-                        value = Convert.ToInt32(cadenceCounter, 16); //converteren van hex naar decimaal
-                        subscriptionResultTextBlock.Text = "rotations counter = " + value.ToString();
-                        cadenceTime = hex[8].ToString() + hex[9].ToString() + hex[6].ToString() + hex[7].ToString();
-                        valuetime = Convert.ToInt32(cadenceTime, 16);
-                        //Debug.WriteLine(value + " " + valueprevious + " " + valuetime + " " + valuetimeprevious);
+                        //hex = new StringBuilder(inputx.Length * 2);
+                        //foreach (byte b in inputx)
+                        //hex.AppendFormat("{0:x2}", b);
 
-                        //calculation rotations per minute
-                        int deltavalue = value - valueprevious;
-                        int deltavaluetime = valuetime - valuetimeprevious;
-                        //  Debug.WriteLine(deltavalue + " " + deltavaluetime);
-                        //if (deltavaluetime > 0 && deltavalue > 0 && value > valueprevious && valuetime > valuetimeprevious)
-                        //{
-                        if (deltavaluetime > 0 && deltavalue > 0)
+                        Temp0 = string.Format("{0:x}", inputx[0]);//converteren van decimaal naar hexadecimaal
+                        Temp1 = string.Format("{0:x}", inputx[1]);
+                        Temp2 = string.Format("{0:x}", inputx[2]);
+                        Temp3 = string.Format("{0:x}", inputx[3]);
+                        Temp4 = string.Format("{0:x}", inputx[4]);
+                        if (Temp0 != "0")//filter omdat soms Temp0 t/m Temp4 = 00:00:00:00:00
                         {
-                            Rotationsresult = deltavalue * 1024f / deltavaluetime; //aantal toeren per tijdeenheid
-                                                                                   // x 60 gives amount of rotations per minute
-                            Rotationsresult = (int)(Rotationsresult * 60);
-                            subscriptionResultTextBlock2.Text = "rotations per minute = " + Rotationsresult.ToString();
-                            secondtestnull = 0; //soms ook al zijn we aan het fietsen krijgen we de waarden alsof we niet meer trappen, resultaat is dat 1 x een nul verschijnt bij het aantal toeren per minut. vandaar dat we dan pas een nul laten zien als we twee keer de info krijgen dat er niet meer wordt gefietst
+                            //cadenceCounter = hex[4].ToString() + hex[5].ToString() + hex[2].ToString() + hex[3].ToString(); //formaat is little endian betekent dat we de volgorde moeten veranderen
+                            cadenceCounter = Temp2 + Temp1;
+                            value = Convert.ToInt32(cadenceCounter, 16); //converteren van hexadecimaal naar decimaal
+                            subscriptionResultTextBlock.Text = "rotations counter = " + value.ToString();
+                            //cadenceTime = hex[8].ToString() + hex[9].ToString() + hex[6].ToString() + hex[7].ToString();
+                            cadenceTime = Temp4 + Temp3;
+                            valuetime = Convert.ToInt32(cadenceTime, 16);
+                            //Debug.WriteLine(value + " " + valueprevious + " " + valuetime + " " + valuetimeprevious);
 
-                        }
-                        else if (deltavalue <= 0 && deltavaluetime <= 0 && secondtestnull > 2) //als er niet wordt gefietst dan is het aantal toeren/minut = 0
-                        {
-                            subscriptionResultTextBlock2.Text = "rotations per minute = 0";
-                            secondtestnull = 0;
-                        }
-                        else if (deltavalue <= 0 && deltavaluetime <= 0 && value > 0) // de waarde value moet > dan 0 of negatief om te vermijden dat secondtestnull = +1 
-                        {
-                            secondtestnull = secondtestnull + 1;
-                        }
-                        valuetimeprevious = valuetime;
-                        valueprevious = value;
+                            //calculation rotations per minute
+                            int deltavalue = value - valueprevious;
+                            int deltavaluetime = valuetime - valuetimeprevious;
+                            //  Debug.WriteLine(deltavalue + " " + deltavaluetime);
+                            //if (deltavaluetime > 0 && deltavalue > 0 && value > valueprevious && valuetime > valuetimeprevious)
+                            //{
+                            if (deltavaluetime > 0 && deltavalue > 0)
+                            {
+                                Rotationsresult = deltavalue * 1024f / deltavaluetime; //aantal toeren per tijdeenheid
+                                                                                       // x 60 gives amount of rotations per minute
+                                Rotationsresult = (int)(Rotationsresult * 60);
+                                subscriptionResultTextBlock2.Text = "rotations per minute = " + Rotationsresult.ToString();
+                                secondtestnull = 0; //soms ook al zijn we aan het fietsen krijgen we de waarden alsof we niet meer trappen, resultaat is dat 1 x een nul verschijnt bij het aantal toeren per minut. vandaar dat we dan pas een nul laten zien als we twee keer de info krijgen dat er niet meer wordt gefietst
+
+                            }
+                            else if (deltavalue <= 0 && deltavaluetime <= 0 && secondtestnull > 2) //als er niet wordt gefietst dan is het aantal toeren/minut = 0
+                            {
+                                subscriptionResultTextBlock2.Text = "rotations per minute = 0";
+                                secondtestnull = 0;
+                            }
+                            else if (deltavalue <= 0 && deltavaluetime <= 0 && value > 0) // de waarde value moet > dan 0 of negatief om te vermijden dat secondtestnull = +1 
+                            {
+                                secondtestnull = secondtestnull + 1;
+                            }
+                            valuetimeprevious = valuetime;
+                            valueprevious = value;
+                    }
 
                     });
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("Fault Characteristic_ValueChanged " + ex);
+                Debug.WriteLine(inputx[0] +":" + inputx[1] + ":" + inputx[2] + ":" + inputx[3] + ":" + inputx[4]);
+                Debug.WriteLine(Temp0 + ":" + Temp1 + ":" + Temp2 + ":" + Temp3 + ":" + Temp4);
+                //Debug.WriteLine("rotations = " + value);
+                //Debug.WriteLine("rotations / minute = " + valuetime);
             }
         }
         private async Task GetInformationSensor()
@@ -393,11 +426,16 @@ namespace Cadence
                     {
                         observableServices.Add(new GattServiceWrapper(service));
                     }
+                    connectionStatusTextBlock.Text = "Sensor: Connection established!";
+                    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                    TimerConnectToSensor.Stop();
                 }
                 else
                 {
                     Debug.WriteLine("could not read the services");
-                   NoError = false;
+                    connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
+                    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                    NoError = false;
                     TimerConnectToSensor.Start();
                     return;
                 }
@@ -561,7 +599,7 @@ namespace Cadence
             }
             //}
         }
-
+        GattCharacteristic characteristic2;
         private async Task GetValuesSensor()
         {
             //<begincode***** select characteristic Measurement and putt them in the list of observableCharacteristics*****>
@@ -588,7 +626,7 @@ namespace Cadence
             selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a5b-0000-1000-8000-00805f9b34fb");
             //<endcode***** select characteristic measurement*****>
             //<begincode***** subscribe to measurement*****>
-            GattCharacteristic characteristic2 = selectedCharacteristicWrapper.Characteristic;
+            characteristic2 = selectedCharacteristicWrapper.Characteristic;
             GattCharacteristicProperties properties = characteristic2.CharacteristicProperties;
             if (properties.HasFlag(GattCharacteristicProperties.Notify))
             {
