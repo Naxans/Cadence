@@ -42,6 +42,7 @@ namespace Cadence
         //private bool FirstConnectionError = false;
         private bool NoError = true;
        private bool SubscribeMeasurement = false;
+        private bool StartOnce = false;
 
         private BluetoothLEDevice cadence;
         private ObservableCollection<BluetoothInformationWrapper> informationOfFoundDevices;
@@ -246,7 +247,60 @@ namespace Cadence
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
             }
         }
-
+        private async void AutoStart(int ii)
+        {
+            try
+            {
+                //deviceWatcher.Stop();
+                ErrorTextBlock.Text = "Search for the sensor";
+                ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                connectionStatusTextBlock.Text = "";
+                DeviceNameTextBlock.Text = "";
+                BTAddresTextBlock.Text = "";
+                FirmwareTextBlock.Text = "";
+                HardwareTextBlock.Text = "";
+                readingsTextBlock.Text = "";
+                subscriptionStatusTextBlock.Text = "";
+                subscriptionResultTextBlock.Text = "";
+                subscriptionResultTextBlock2.Text = "";
+                NoError = true;
+                SubscribeMeasurement = false;
+                cadence = await BluetoothLEDevice.FromIdAsync(informationOfFoundDevices[ii].DeviceInformation.Id);
+                //await GetInformationSensor();
+                if (informationOfFoundDevices[ii] != null)
+                {
+                    await GetInformationSensor();
+                    if (NoError == false)
+                    {
+                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        TimerConnectToSensor.Start();
+                        return;
+                    }
+                    //Debug.WriteLine("2 sensor is " + cadence.ConnectionStatus.ToString());
+                    await GetValuesSensor();
+                    if (NoError == false)
+                    {
+                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        TimerConnectToSensor.Start();
+                        return;
+                    }
+                    ErrorTextBlock.Text = "Found sensor";
+                    //Debug.WriteLine("3 sensor is " + cadence.ConnectionStatus.ToString());
+                    ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                    //<begincode*****get the value of the cadence counter and te time between two measurements*****>
+                    cadence.ConnectionStatusChanged += Cadence_ConnectionStatusChanged;
+                    //<endcode*****get the value of the cadence counter and te time between two measurements*****>
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                ErrorTextBlock.Text = "Error sensor!";
+                ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+            }
+        }
         private void DeviceWatcher_Stopped(DeviceWatcher sender, object args)
         {
             Debug.WriteLine("DeviceWatcher_Stopped");
@@ -285,6 +339,14 @@ namespace Cadence
                 if (TestDoubleDevices == true)
                 {
                     informationOfFoundDevices.Add(new BluetoothInformationWrapper(args));
+                }
+                for (int i = 0; i < informationOfFoundDevices.Count; i += 1)
+                { 
+                    if (informationOfFoundDevices[i].DeviceInformation.Id == StorageBluetoothAddress.ToString() && StartOnce == false)
+                    {
+                        StartOnce = true;
+                        AutoStart(i);
+                    }
                 }
             });
         }
