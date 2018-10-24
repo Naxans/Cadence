@@ -41,12 +41,32 @@ namespace Cadence
 
         //private bool FirstConnectionError = false;
         private bool NoError = true;
-       private bool SubscribeMeasurement = false;
+        private bool SubscribeMeasurement = false;
         private bool StartOnce = false;
+        private int valueprevious;
+        private int valuetimeprevious;
+        private int valuetime;
+        private int secondtestnull = 0;
+        private string cadenceCounter;
+        private string cadenceTime;
+        private float Rotationsresult;
+        private int value;
+        private byte[] inputx;
+        //StringBuilder hex;
+
+        private string Temp0;
+        private string Temp1;
+        private string Temp2;
+        private string Temp3;
+        private string Temp4;
 
         private BluetoothLEDevice cadence;
         private ObservableCollection<BluetoothInformationWrapper> informationOfFoundDevices;
         private GattCharacteristicWrapper selectedCharacteristicWrapper;
+        private GattDeviceServicesResult result;
+        private GattDeviceService service2;
+        private GattCharacteristicsResult result2;
+        private GattCharacteristic characteristic2;
 
         private DataReader reader;
 
@@ -65,14 +85,16 @@ namespace Cadence
         //!!!!!de sensoren moeten non paired zijn!!!!
         public MainPage()
         {
+            try
+            { 
             StorageBluetoothAddress = localSettings.Values["StorageBluetoothAddress"]; //laden van de info 
             if (StorageBluetoothAddress == null) //als de parameter nog niet is aangemaakt (spel wordt voor de eerste keer gestart) wordt die hier aangemaakt enopgeslagen
             {
                 localSettings.Values["StorageBluetoothAddress"] = "";
                 StorageBluetoothAddress = localSettings.Values["StorageBluetoothAddress"];
             }
-
-            this.InitializeComponent();
+                //StorageBluetoothAddress = ""; ////only for testing
+                this.InitializeComponent();
 
             informationOfFoundDevices = new ObservableCollection<BluetoothInformationWrapper>();
             deviceListView.ItemsSource = informationOfFoundDevices;
@@ -101,8 +123,15 @@ namespace Cadence
             TimerConnectToSensor.Tick += TimerConnectToSensor_Tick;
             TimerConnectToSensor.Stop();
         }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Fault Mainpage " + ex);
+            }
+}
         protected override void OnNavigatedTo(NavigationEventArgs e) //OnNavigatedTo is invoked when the Page is loaded and becomes the current source of a parent Frame.
         {
+            try
+            { 
             var appView = Windows.UI.ViewManagement.ApplicationView.GetForCurrentView();
             appView.Title = "Test Wahoo ";
 
@@ -121,30 +150,23 @@ namespace Cadence
             deviceWatcher.Start();
             Debug.WriteLine(deviceWatcher.Status);
             base.OnNavigatedTo(e);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Fault OnNavigatedTo " + ex);
+            }
         }
         protected override void OnNavigatedFrom(NavigationEventArgs e) //OnNavigatedFrom is invoked immediately after the Page is unloaded and is no longer the current source of a parent Frame.
         {
             deviceWatcher.Stop();
             base.OnNavigatedFrom(e);
         }
-        GattDeviceServicesResult result;
-        GattDeviceService service2;
-        GattCharacteristicsResult result2;
+
         private async void TimerConnectToSensor_Tick(object sender, object e)
         {
+            try
+            { 
             NoError = true;
-            //if (cadence == null )
-            //{
-            //    connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
-            //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-            //    return;
-            //}
-            //else
-            //{
-            //    connectionStatusTextBlock.Text = "Sensor: Connection established!";
-            //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-            //    TimerConnectToSensor.Stop();
-            //}
             await  GetInformationSensor();
             if (NoError == false)
             {
@@ -169,16 +191,27 @@ namespace Cadence
             }
             ErrorTextBlock.Text = "Found sensor";
             ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-            localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
             //<begincode*****get the value of the cadence counter and te time between two measurements*****>
             cadence.ConnectionStatusChanged += Cadence_ConnectionStatusChanged;
-            //<endcode*****get the value of the cadence counter and te time between two measurements*****>
+                //<endcode*****get the value of the cadence counter and te time between two measurements*****>
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Fault TimerConnectToSensor_Tick " + ex);
+            }
         }
         private async void deviceListView_ItemClick(object sender, ItemClickEventArgs e)
         {
             try
             {
-                //deviceWatcher.Stop();
+                //onderstaande 6 regels moet ik doen als ik een andere sensor kies in de lijst, om te beletten dat de measurement charakerstiek blijft geabonneerd en daarom de waarde rotations krijgt van deze maar ook van de vorige sensor
+                if (cadence != null && characteristic2 != null)
+                {
+                    cadence.Dispose();
+                    cadence = null;
+                    characteristic2.Service.Dispose();
+                }
+
                 ErrorTextBlock.Text = "Search for the sensor";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 connectionStatusTextBlock.Text = "";
@@ -192,6 +225,7 @@ namespace Cadence
                 subscriptionResultTextBlock2.Text = "";
                 NoError = true;
                 SubscribeMeasurement = false;
+                
                 selectedDeviceInfoWrapper = (BluetoothInformationWrapper)e.ClickedItem;
 
                 cadence = await BluetoothLEDevice.FromIdAsync(selectedDeviceInfoWrapper.DeviceInformation.Id);
@@ -323,6 +357,8 @@ namespace Cadence
 
         private async void DeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
+            try
+            { 
             //onderstaande bool TestDoubleDevices is om te beletten dat een ble device meer dan 1 keer in de lijst wordt geschreven
             bool TestDoubleDevices = true;
             //in realtime wordt er gezocht naar bluetooth device die non paired zijn
@@ -345,10 +381,15 @@ namespace Cadence
                     if (informationOfFoundDevices[i].DeviceInformation.Id == StorageBluetoothAddress.ToString() && StartOnce == false)
                     {
                         StartOnce = true;
-                        AutoStart(i);
+                        AutoStart(i); //als bij de vorige keer nu deze sensor ook in de lijst verschijnt wordt deze automatisch geconnecteerd
                     }
                 }
             });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Fault DeviceWatcher_Added " + ex);
+            }
         }
 
         private async void Cadence_ConnectionStatusChanged(BluetoothLEDevice sender, object args)
@@ -376,22 +417,6 @@ namespace Cadence
             }
         }
 
-        int valueprevious;
-        int valuetimeprevious;
-        int valuetime;
-        int secondtestnull = 0;
-        string cadenceCounter;
-        string cadenceTime;
-        float Rotationsresult;
-        int value;
-        byte[] inputx;
-        StringBuilder hex;
-
-        string Temp0;
-        string Temp1;
-        string Temp2;
-        string Temp3;
-        string Temp4;
         private async void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args) //event handler used to process characteristic value change notification and indication events sent by a Bluetooth LE device.
         {
             try
@@ -464,271 +489,310 @@ namespace Cadence
                 //Debug.WriteLine("rotations / minute = " + valuetime);
             }
         }
+        GattServiceWrapper wrapper3;
         private async Task GetInformationSensor()
         {
-            string BluetoothAddressHex = cadence.BluetoothAddress.ToString("x");  // convert decimal to hex
-            for (int i = 2; i < BluetoothAddressHex.Length; i += 2) // om het leesbaar te houden plaatsen we om de 2 hex getallen een :
-            {
-                BluetoothAddressHex = BluetoothAddressHex.Insert(i, ":");
-                i = i + 1;
-            }
-            BTAddresTextBlock.Text = "Bluetooth address = " + BluetoothAddressHex;
-            //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
-            if (cadence != null)
-            {
-                //<begincode***** get all services and putt them in the list of observableServices*****>
-                 result = await cadence.GetGattServicesAsync();
-                if (result.Status == GattCommunicationStatus.Success)
+            try
+            { 
+                string BluetoothAddressHex = cadence.BluetoothAddress.ToString("x");  // convert decimal to hex
+                for (int i = 2; i < BluetoothAddressHex.Length; i += 2) // om het leesbaar te houden plaatsen we om de 2 hex getallen een :
                 {
-                    //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
-                    List<GattDeviceService> services = result.Services.ToList();
-                    observableServices = new ObservableCollection<GattServiceWrapper>();
-                    observableServices.Clear();
-                    foreach (GattDeviceService service in services)
+                    BluetoothAddressHex = BluetoothAddressHex.Insert(i, ":");
+                    i = i + 1;
+                }
+                BTAddresTextBlock.Text = "Bluetooth address = " + BluetoothAddressHex;
+                //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
+                if (cadence != null)
+                {
+                    //<begincode***** get all services and putt them in the list of observableServices*****>
+                     result = await cadence.GetGattServicesAsync();
+                    if (result.Status == GattCommunicationStatus.Success)
                     {
-                        observableServices.Add(new GattServiceWrapper(service));
-                    }
-                    connectionStatusTextBlock.Text = "Sensor: Connection established!";
-                    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                    TimerConnectToSensor.Stop();
-                }
-                else
-                {
-                    Debug.WriteLine("could not read the services");
-                    connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
-                    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                    NoError = false;
-                    TimerConnectToSensor.Start();
-                    return;
-                }
-                //<endcode***** get all services and putt them in the list of observableServices*****>
-                //<begincode***** select characteristic GenericAccess level and putt them in the list of observableCharacteristics*****>
-                var wrapper2 = observableServices.Single(i => i.Service.Uuid.ToString() == "00001800-0000-1000-8000-00805f9b34fb");
-                service2 = wrapper2.Service;
-                result2 = await service2.GetCharacteristicsAsync();
-                if (result2.Status == GattCommunicationStatus.Success)
-                {
-                    observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
-                    foreach (GattCharacteristic characteristic in result2.Characteristics)
-                    {
-                        observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("could not read the characterstics");
-                    NoError = false;
-                    return;
-                }
-                //<endcode***** select characteristic GenericAccess and putt them in the list of observableCharacteristics*****>
-                //<begincode***** select characteristic device name*****>
-                selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a00-0000-1000-8000-00805f9b34fb");
-                //<endcode***** select characteristic device name*****>
-                //<begincode*****read device name*****>
-                GattReadResult result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
-                if (result3.Status == GattCommunicationStatus.Success)
-                {
-                    reader = DataReader.FromBuffer(result3.Value);
-                    byte[] input = new byte[reader.UnconsumedBufferLength];
-                    reader.ReadBytes(input);
-                    string utf8result = System.Text.Encoding.UTF8.GetString(input);
-                    DeviceNameTextBlock.Text = "Device name = " + utf8result;
-                }
-                else
-                {
-                    Debug.WriteLine("could not read the device name");
-                    NoError = false;
-                    return;
-                }
-                //<endcode*****read Firmware revision*****>
-
-                //<begincode***** select characteristic Device information and putt them in the list of observableCharacteristics*****>
-                var wrapper3 = observableServices.Single(i => i.Service.Uuid.ToString() == "0000180a-0000-1000-8000-00805f9b34fb");
-                service2 = wrapper3.Service;
-                result2 = await service2.GetCharacteristicsAsync();
-                if (result2.Status == GattCommunicationStatus.Success)
-                {
-                    // observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
-                    observableCharacteristics.Clear();
-                    foreach (GattCharacteristic characteristic in result2.Characteristics)
-                    {
-                        observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
-                    }
-                }
-                else
-                {
-                    //hier nog iets doen?
-                    NoError = false;
-                }
-                //<endcode***** select characteristic device information and putt them in the list of observableCharacteristics*****>
-                //<begincode***** select characteristic Firmware*****>
-                selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a26-0000-1000-8000-00805f9b34fb");
-                //<endcode***** select characteristic Firmware*****>
-                //<begincode*****read firmware*****>
-                result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
-                if (result3.Status == GattCommunicationStatus.Success)
-                {
-                    reader = DataReader.FromBuffer(result3.Value);
-                    byte[] input = new byte[reader.UnconsumedBufferLength];
-                    reader.ReadBytes(input);
-                    string utf8result = System.Text.Encoding.UTF8.GetString(input);
-                    FirmwareTextBlock.Text = "Firmware Revision = " + utf8result;
-                }
-                else
-                {
-                    Debug.WriteLine("could not read the firmware revision");
-                    NoError = false;
-                    return;
-                }
-                //<endcode*****read firmware*****>
-                //<begincode***** select characteristic Hardware*****>
-                selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a27-0000-1000-8000-00805f9b34fb");
-                //<endcode***** select characteristic Hardware*****>
-                //<begincode*****read hardware*****>
-                result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
-                if (result3.Status == GattCommunicationStatus.Success)
-                {
-                    reader = DataReader.FromBuffer(result3.Value);
-                    byte[] input = new byte[reader.UnconsumedBufferLength];
-                    reader.ReadBytes(input);
-                    //string utf8result = System.Text.Encoding.UTF8.GetString(input);
-                    //HardwareTextBlock.Text = "Hardware Revision = " + utf8result;
-                    StringBuilder hex = new StringBuilder(input.Length * 2);
-                    foreach (byte b in input)
-                        hex.AppendFormat("{0:x2}", b);
-                    int Hardwarevalue = Convert.ToInt32(hex.ToString(), 16);
-                    HardwareTextBlock.Text = "Hardware Revision = " + Hardwarevalue.ToString();
-                }
-                else
-                {
-                    Debug.WriteLine("could not read the hardware revision");
-                    NoError = false;
-                    return;
-                }
-                //<endcode*****read hardware*****>
-
-                //<begincode***** select characteristic battery level and putt them in the list of observableCharacteristics*****>
-                var wrapper4 = observableServices.Single(i => i.Service.Uuid.ToString() == "0000180f-0000-1000-8000-00805f9b34fb");
-                service2 = wrapper4.Service;
-                result2 = await service2.GetCharacteristicsAsync();
-                if (result2.Status == GattCommunicationStatus.Success)
-                {
-                    observableCharacteristics.Clear();
-                    foreach (GattCharacteristic characteristic in result2.Characteristics)
-                    {
-                        observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("could not read the characteristic battery level");
-                    NoError = false;
-                    return;
-                }
-                //<endcode***** select characteristic battery level and putt them in the list of observableCharacteristics*****>
-                //<begincode***** select characteristic battery level*****>
-                selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a19-0000-1000-8000-00805f9b34fb");
-                //<endcode***** select characteristic battery level*****>
-                //<begincode*****read battery level*****>
-                result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
-                if (result3.Status == GattCommunicationStatus.Success)
-                {
-                    reader = DataReader.FromBuffer(result3.Value);
-                    byte[] input = new byte[reader.UnconsumedBufferLength];
-                    reader.ReadBytes(input);
-                    StringBuilder hex = new StringBuilder(input.Length * 2);
-                    foreach (byte b in input)
-                        hex.AppendFormat("{0:x2}", b);
-                    int Batteryvalue = Convert.ToInt32(hex.ToString(), 16);
-                    readingsTextBlock.Text = "Battery level = " + Batteryvalue.ToString() + "%";
-                    if (Batteryvalue < 60)
-                    {
-                        readingsTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
+                        List<GattDeviceService> services = result.Services.ToList();
+                        observableServices = new ObservableCollection<GattServiceWrapper>();
+                        observableServices.Clear();
+                        foreach (GattDeviceService service in services)
+                        {
+                            observableServices.Add(new GattServiceWrapper(service));
+                        }
+                        connectionStatusTextBlock.Text = "Sensor: Connection established!";
+                        connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                        TimerConnectToSensor.Stop();
                     }
                     else
                     {
-                        readingsTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                        Debug.WriteLine("could not read the services");
+                        connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
+                        connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        NoError = false;
+                        TimerConnectToSensor.Start();
+                        return;
+                    }
+                    //<endcode***** get all services and putt them in the list of observableServices*****>
+
+                    //<begincode***** select characteristic GenericAccess level and putt them in the list of observableCharacteristics*****>
+                    var wrapper2 = observableServices.Single(i => i.Service.Uuid.ToString() == "00001800-0000-1000-8000-00805f9b34fb");
+                    service2 = wrapper2.Service;
+                    result2 = await service2.GetCharacteristicsAsync();
+                    if (result2.Status == GattCommunicationStatus.Success)
+                    {
+                        observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
+                        foreach (GattCharacteristic characteristic in result2.Characteristics)
+                        {
+                            observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("could not read the characterstics");
+                        NoError = false;
+                        return;
+                    }
+                    //<endcode***** select characteristic GenericAccess and putt them in the list of observableCharacteristics*****>
+                    //<begincode***** select characteristic device name*****>
+                    selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a00-0000-1000-8000-00805f9b34fb");
+                    //<endcode***** select characteristic device name*****>
+                    //<begincode*****read device name*****>
+                    GattReadResult result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
+                    if (result3.Status == GattCommunicationStatus.Success)
+                    {
+                        reader = DataReader.FromBuffer(result3.Value);
+                        byte[] input = new byte[reader.UnconsumedBufferLength];
+                        reader.ReadBytes(input);
+                        string utf8result = System.Text.Encoding.UTF8.GetString(input);
+                        DeviceNameTextBlock.Text = "Device name = " + utf8result;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("could not read the device name");
+                        NoError = false;
+                        return;
+                    }
+                    //<endcode*****read Firmware revision*****>
+
+                    //<begincode***** select characteristic Device information and putt them in the list of observableCharacteristics*****>
+                    // Het is niet zeker dat de service firmware bestaat, daarom eerst controleren of de service wel bestaat, want als er niets is te selecteren dan krijgen we een fout
+                    for (int ii = 0; ii < observableServices.Count; ii += 1)
+                    {
+                        if (observableServices[ii].Service.Uuid.ToString() == "0000180a-0000-1000-8000-00805f9b34fb")
+                        {
+                            wrapper3 = observableServices.Single(i => i.Service.Uuid.ToString() == "0000180a-0000-1000-8000-00805f9b34fb");
+                            NoError = true;
+                            break;
+                        }
+                        else
+                        {
+                            NoError = false;
+                        }
+                    }
+                    if(NoError == false)
+                    {
+                        return;
+                    }
+                   // var wrapper3 = observableServices.Single(i => i.Service.Uuid.ToString() == "0000180a-0000-1000-8000-00805f9b34fb");
+                    service2 = wrapper3.Service;
+                    result2 = await service2.GetCharacteristicsAsync();
+                    if (result2.Status == GattCommunicationStatus.Success)
+                    {
+                        // observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
+                        observableCharacteristics.Clear();
+                        foreach (GattCharacteristic characteristic in result2.Characteristics)
+                        {
+                            observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
+                        }
+                    }
+                    else
+                    {
+                        //hier nog iets doen?
+                        NoError = false;
+                    }
+                    //<endcode***** select characteristic device information and putt them in the list of observableCharacteristics*****>
+                    //<begincode***** select characteristic Firmware*****>
+                    selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a26-0000-1000-8000-00805f9b34fb");
+                    //<endcode***** select characteristic Firmware*****>
+                    //<begincode*****read firmware*****>
+                    result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
+                    if (result3.Status == GattCommunicationStatus.Success)
+                    {
+                        reader = DataReader.FromBuffer(result3.Value);
+                        byte[] input = new byte[reader.UnconsumedBufferLength];
+                        reader.ReadBytes(input);
+                        string utf8result = System.Text.Encoding.UTF8.GetString(input);
+                        FirmwareTextBlock.Text = "Firmware Revision = " + utf8result;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("could not read the firmware revision");
+                        NoError = false;
+                        return;
+                    }
+                    //<endcode*****read firmware*****>
+
+                    //<begincode***** select characteristic Hardware*****>
+                    selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a27-0000-1000-8000-00805f9b34fb");
+                    //<endcode***** select characteristic Hardware*****>
+                    //<begincode*****read hardware*****>
+                    result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
+                    if (result3.Status == GattCommunicationStatus.Success)
+                    {
+                        reader = DataReader.FromBuffer(result3.Value);
+                        byte[] input = new byte[reader.UnconsumedBufferLength];
+                        reader.ReadBytes(input);
+                        //string utf8result = System.Text.Encoding.UTF8.GetString(input);
+                        //HardwareTextBlock.Text = "Hardware Revision = " + utf8result;
+                        StringBuilder hex = new StringBuilder(input.Length * 2);
+                        foreach (byte b in input)
+                        hex.AppendFormat("{0:x2}", b);
+                        int Hardwarevalue = Convert.ToInt32(hex.ToString(), 16);
+                        HardwareTextBlock.Text = "Hardware Revision = " + Hardwarevalue.ToString();
+                    }
+                    else
+                    {
+                        Debug.WriteLine("could not read the hardware revision");
+                        NoError = false;
+                        return;
+                    }
+                    //<endcode*****read hardware*****>
+
+                    //<begincode***** select characteristic battery level and putt them in the list of observableCharacteristics*****>
+                    var wrapper4 = observableServices.Single(i => i.Service.Uuid.ToString() == "0000180f-0000-1000-8000-00805f9b34fb");
+                    service2 = wrapper4.Service;
+                    result2 = await service2.GetCharacteristicsAsync();
+                    if (result2.Status == GattCommunicationStatus.Success)
+                    {
+                        observableCharacteristics.Clear();
+                        foreach (GattCharacteristic characteristic in result2.Characteristics)
+                        {
+                            observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("could not read the characteristic battery level");
+                        NoError = false;
+                        return;
+                    }
+                    //<endcode***** select characteristic battery level and putt them in the list of observableCharacteristics*****>
+                    //<begincode***** select characteristic battery level*****>
+                    selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a19-0000-1000-8000-00805f9b34fb");
+                    //<endcode***** select characteristic battery level*****>
+                    //<begincode*****read battery level*****>
+                    result3 = await selectedCharacteristicWrapper.Characteristic.ReadValueAsync();
+                    if (result3.Status == GattCommunicationStatus.Success)
+                    {
+                        reader = DataReader.FromBuffer(result3.Value);
+                        byte[] input = new byte[reader.UnconsumedBufferLength];
+                        reader.ReadBytes(input);
+                        StringBuilder hex = new StringBuilder(input.Length * 2);
+                        foreach (byte b in input)
+                        hex.AppendFormat("{0:x2}", b);
+                        int Batteryvalue = Convert.ToInt32(hex.ToString(), 16);
+                        readingsTextBlock.Text = "Battery level = " + Batteryvalue.ToString() + "%";
+                        if (Batteryvalue < 60)
+                        {
+                            readingsTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        }
+                        else
+                        {
+                            readingsTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine("could not read the battery level");
+                        NoError = false;
+                        return;
+                    }
+                    //<endcode*****read battery level*****>
+                    //FirstConnectionError = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Fault GetInformationSensor " + ex);
+                NoError = false;
+
+            }
+        }
+
+        private async Task GetValuesSensor()
+        {
+            try
+            { 
+                //<begincode***** select characteristic Measurement and putt them in the list of observableCharacteristics*****>
+                var wrapper5 = observableServices.Single(i => i.Service.Uuid.ToString() == "00001816-0000-1000-8000-00805f9b34fb");
+                service2 = wrapper5.Service;
+                result2 = await service2.GetCharacteristicsAsync();
+                if (result2.Status == GattCommunicationStatus.Success)
+                {
+                    //observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
+                    observableCharacteristics.Clear();
+                    foreach (GattCharacteristic characteristic in result2.Characteristics)
+                    {
+                        observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
                     }
                 }
                 else
                 {
-                    Debug.WriteLine("could not read the battery level");
+                    Debug.WriteLine("could not read the characteristic measurement");
                     NoError = false;
                     return;
                 }
-                //<endcode*****read battery level*****>
-                //FirstConnectionError = false;
-            }
-            //}
-        }
-        GattCharacteristic characteristic2;
-        private async Task GetValuesSensor()
-        {
-            //<begincode***** select characteristic Measurement and putt them in the list of observableCharacteristics*****>
-            var wrapper5 = observableServices.Single(i => i.Service.Uuid.ToString() == "00001816-0000-1000-8000-00805f9b34fb");
-            service2 = wrapper5.Service;
-            result2 = await service2.GetCharacteristicsAsync();
-            if (result2.Status == GattCommunicationStatus.Success)
-            {
-                //observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
-                observableCharacteristics.Clear();
-                foreach (GattCharacteristic characteristic in result2.Characteristics)
+                //<endcode***** select characteristic device Measurement and putt them in the list of observableCharacteristics*****>
+                //<begincode***** select characteristic measurement*****>
+                selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a5b-0000-1000-8000-00805f9b34fb");
+                //<endcode***** select characteristic measurement*****>
+                //<begincode***** subscribe to measurement*****>
+                // characteristic2.Service.Dispose();
+                characteristic2 = selectedCharacteristicWrapper.Characteristic;
+                GattCharacteristicProperties properties = characteristic2.CharacteristicProperties;
+                if (properties.HasFlag(GattCharacteristicProperties.Notify))
                 {
-                    observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
+                    GattCommunicationStatus status = await characteristic2.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
+                    if (status == GattCommunicationStatus.Success)
+                    {
+                        // Server has been informed of clients interest.
+                        SubscribeMeasurement = true;
+                        subscriptionStatusTextBlock.Text = "Measurement Subscribed to cadence sensor";
+                        subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                        characteristic2.ValueChanged += Characteristic_ValueChanged;
+                    }
+                    else
+                    {
+                        subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
+                        subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        Debug.WriteLine("could not subscribe to measurement");
+                        NoError = false;
+                        return;
+                    }
                 }
+                else if (properties.HasFlag(GattCharacteristicProperties.Indicate))
+                {
+                    GattCommunicationStatus status = await characteristic2.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Indicate);
+                    if (status == GattCommunicationStatus.Success)
+                    {
+                        subscriptionStatusTextBlock.Text = "Measurement Subscribed to cadence sensor";
+                        subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
+                        characteristic2.ValueChanged += Characteristic_ValueChanged;
+                    }
+                    else
+                    {
+                        subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
+                        subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        Debug.WriteLine("could not indicate to measurement");
+                        NoError = false;
+                        return;
+                    }
+                }
+                //<endcode***** subscribe to measurement*****>
             }
-            else
+            catch (Exception ex)
             {
-                Debug.WriteLine("could not read the characteristic measurement");
+                Debug.WriteLine("Fault GetValuesSensor " + ex);
                 NoError = false;
-                return;
+
             }
-            //<endcode***** select characteristic device Measurement and putt them in the list of observableCharacteristics*****>
-            //<begincode***** select characteristic measurement*****>
-            selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a5b-0000-1000-8000-00805f9b34fb");
-            //<endcode***** select characteristic measurement*****>
-            //<begincode***** subscribe to measurement*****>
-            characteristic2 = selectedCharacteristicWrapper.Characteristic;
-            GattCharacteristicProperties properties = characteristic2.CharacteristicProperties;
-            if (properties.HasFlag(GattCharacteristicProperties.Notify))
-            {
-                GattCommunicationStatus status = await characteristic2.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
-                if (status == GattCommunicationStatus.Success)
-                {
-                    // Server has been informed of clients interest.
-                    SubscribeMeasurement = true;
-                    subscriptionStatusTextBlock.Text = "Measurement Subscribed to cadence sensor";
-                    subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                    characteristic2.ValueChanged += Characteristic_ValueChanged;
-                }
-                else
-                {
-                    subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
-                    subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                    Debug.WriteLine("could not subscribe to measurement");
-                    NoError = false;
-                    return;
-                }
-            }
-            else if (properties.HasFlag(GattCharacteristicProperties.Indicate))
-            {
-                GattCommunicationStatus status = await characteristic2.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Indicate);
-                if (status == GattCommunicationStatus.Success)
-                {
-                    subscriptionStatusTextBlock.Text = "Measurement Subscribed to cadence sensor";
-                    subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                    characteristic2.ValueChanged += Characteristic_ValueChanged;
-                }
-                else
-                {
-                    subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
-                    subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                    Debug.WriteLine("could not indicate to measurement");
-                    NoError = false;
-                    return;
-                }
-            }
-            //<endcode***** subscribe to measurement*****>
         }
 
 
