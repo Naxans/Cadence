@@ -149,6 +149,7 @@ namespace Cadence
                 Debug.WriteLine("Fault OnNavigatedTo " + ex);
             }
         }
+
         protected override void OnNavigatedFrom(NavigationEventArgs e) //OnNavigatedFrom This event will be fired -invoked- when you're leaving the page .. and before navigating from it ..
         {
             deviceWatcher.Stop();
@@ -164,8 +165,10 @@ namespace Cadence
                 await GetAllServices();
                 if (NoError == false)
                 {
-                    ErrorTextBlock.Text = "Error sensor!";
-                    ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                    ErrorTextBlock.Text = "Searching for a sensor";
+                    //ErrorTextBlock.Text = "Error sensor!";
+                    //ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                    ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                     //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                     NoError = true;
                     TimerConnectToSensor.Start();
@@ -183,6 +186,7 @@ namespace Cadence
                     {
                         characteristic2.ValueChanged -= Characteristic_ValueChanged;
                     }
+                    TimerConnectToSensor.Start();
                     return;
                 }
                 //await  GetValuesSensor();
@@ -195,6 +199,7 @@ namespace Cadence
                     {
                         characteristic2.ValueChanged -= Characteristic_ValueChanged;
                     }
+                    TimerConnectToSensor.Start();
                     return;
                 }
                 ErrorTextBlock.Text = "Found sensor";
@@ -228,7 +233,7 @@ namespace Cadence
 
                 //}
 
-                ErrorTextBlock.Text = "Search for the sensor";
+                ErrorTextBlock.Text = "Searching for a sensor";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 connectionStatusTextBlock.Text = "";
                 DeviceNameTextBlock.Text = "";
@@ -312,7 +317,7 @@ namespace Cadence
         {
             try
             {
-                ErrorTextBlock.Text = "Search for the sensor";
+                ErrorTextBlock.Text = "Searching for a sensor";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 connectionStatusTextBlock.Text = "";
                 DeviceNameTextBlock.Text = "";
@@ -331,8 +336,10 @@ namespace Cadence
                     await GetAllServices();
                     if (NoError == false)
                     {
-                        ErrorTextBlock.Text = "Error sensor!";
-                        ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        //ErrorTextBlock.Text = "Error sensor!";
+                        //ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                        ErrorTextBlock.Text = "Searching for a sensor";
+                        ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                         //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                         TimerConnectToSensor.Start();
                         return;
