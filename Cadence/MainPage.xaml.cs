@@ -191,6 +191,7 @@ namespace Cadence
                 }
                 //await  GetValuesSensor();
                 await GetInformationSensor();
+                //Debug.WriteLine("Getinformationsensor timer");
                 if (NoError == false)
                 {
                     ErrorTextBlock.Text = "Sensor: Error!";
@@ -223,9 +224,11 @@ namespace Cadence
                 //onderstaande 6 regels moet ik doen als ik een andere sensor kies in de lijst, om te beletten dat de measurement charakerstiek blijft geabonneerd en daarom de waarde rotations krijgt van deze maar ook van de vorige sensor
                 if (cadence != null && characteristic2 != null)
                 {
+                    //Debug.WriteLine(cadence.Name + " is dispose");
                     cadence.Dispose();
                     cadence = null;
                     characteristic2.Service.Dispose();
+                   // characteristic2 = null;
                 }
                 //else if (cadence == null && characteristic2 != null && NoError == true)
                 //{
@@ -274,6 +277,7 @@ namespace Cadence
                     }
                     //Debug.WriteLine("2 sensor is " + cadence.ConnectionStatus.ToString());
                     await GetInformationSensor();
+                    //Debug.WriteLine("Getinformationsensor itemclick");
                     //await GetValuesSensor();
                     if (NoError == false)
                     {
@@ -299,7 +303,8 @@ namespace Cadence
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
             }
         }
-        private async void AutoStart(int ii)
+        //private async void AutoStart(int ii)
+        private async void AutoStart()
         {
             try
             {
@@ -316,8 +321,9 @@ namespace Cadence
                 subscriptionResultTextBlock2.Text = "";
                 NoError = true;
                 SubscribeMeasurement = false;
-                cadence = await BluetoothLEDevice.FromIdAsync(informationOfFoundDevices[ii].DeviceInformation.Id);
-                if (informationOfFoundDevices[ii] != null)
+                //cadence = await BluetoothLEDevice.FromIdAsync(informationOfFoundDevices[ii].DeviceInformation.Id);
+                cadence = await BluetoothLEDevice.FromIdAsync(StorageBluetoothAddress.ToString());
+                if (cadence != null)
                 {
                     await GetAllServices();
                     if (NoError == false)
@@ -342,9 +348,10 @@ namespace Cadence
                     //Debug.WriteLine("2 sensor is " + cadence.ConnectionStatus.ToString());
                     //await GetValuesSensor();
                     await GetInformationSensor();
+                    //Debug.WriteLine("Getinformationsensor autostart");
                     if (NoError == false)
                     {
-                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Text = "Sensor: Error!";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                         TimerConnectToSensor.Start();
                         return;
@@ -389,7 +396,7 @@ namespace Cadence
             try
             {
                 //onderstaande bool TestDoubleDevices is om te beletten dat een ble device meer dan 1 keer in de lijst wordt geschreven
-                bool TestDoubleDevices = true;
+                bool DoubleDevices = false;
                 //in realtime wordt er gezocht naar bluetooth device die non paired zijn
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                 () =>
@@ -398,21 +405,22 @@ namespace Cadence
                     {
                         if (informationOfFoundDevices[i].DeviceInformation.Name.Contains(args.Name))
                         {
-                            TestDoubleDevices = false;
+                            DoubleDevices = true;
                         }
                     }
-                    if (TestDoubleDevices == true && args.Name.Contains("Wahoo"))
+                    if (DoubleDevices == false && args.Name.Contains("Wahoo"))
                     {
                         informationOfFoundDevices.Add(new BluetoothInformationWrapper(args));
                     }
-                    for (int i = 0; i < informationOfFoundDevices.Count; i += 1)
-                    {
-                        if (informationOfFoundDevices[i].DeviceInformation.Id == StorageBluetoothAddress.ToString() && StartOnce == false)
-                        {
-                            StartOnce = true;
-                            AutoStart(i); //als bij de vorige keer nu deze sensor ook in de lijst verschijnt wordt deze automatisch geconnecteerd
-                        }
-                    }
+                    //for (int i = 0; i < informationOfFoundDevices.Count; i += 1)
+                    //{
+                    //    if (informationOfFoundDevices[i].DeviceInformation.Id == StorageBluetoothAddress.ToString() && StartOnce == false)
+                    //    {
+                    //        StartOnce = true;
+                    //        AutoStart(i); //als bij de vorige keer nu deze sensor ook in de lijst verschijnt wordt deze automatisch geconnecteerd
+                    //    }
+                    //}
+                    AutoStart();
                 });
             }
             catch (Exception ex)
@@ -579,11 +587,24 @@ namespace Cadence
 
                 if (result2.Status == GattCommunicationStatus.Success)
                 {
-                    //observableCharacteristics = new ObservableCollection<GattCharacteristicWrapper>();
+                    bool Doublecharastic = false; //preventing to add the same charateristic in de list observableCharacteristics, else get a fault
                     foreach (GattCharacteristic characteristic in result2.Characteristics)
                     {
-                        observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic));
+                        Doublecharastic = false;
+                        for (int i = 0; i < observableCharacteristics.Count; i += 1)
+                        {
+                            if (observableCharacteristics[i].Characteristic.Uuid == characteristic.Uuid)
+                            {
+                                Doublecharastic = true;
+                            }
+                        }
+                        if (Doublecharastic == false)
+                        {
+                            observableCharacteristics.Add(new GattCharacteristicWrapper(characteristic)); ;
+                        }
+
                     }
+                    //Debug.WriteLine("Getinformationsensor add");
                 }
                 else
                 {
@@ -593,6 +614,7 @@ namespace Cadence
                 }
                 //<endcode***** select characteristic GenericAccess and putt them in the list of observableCharacteristics*****>
                 //<begincode***** select characteristic device name*****>
+
                 selectedCharacteristicWrapper = observableCharacteristics.Single(i => i.Characteristic.Uuid.ToString() == "00002a00-0000-1000-8000-00805f9b34fb");
                 //<endcode***** select characteristic device name*****>
                 //<begincode*****read device name*****>
@@ -835,7 +857,7 @@ namespace Cadence
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             if (cadence != null)
             {
