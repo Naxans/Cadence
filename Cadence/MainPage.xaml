@@ -22,7 +22,7 @@
                 <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="480" BorderThickness="2,2,2,2" BorderBrush="Black">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Name="InfoSensorTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="Information from Sensor:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
-                    <Button Content="Close" HorizontalAlignment="Left" Height="29" Margin="70,0,0,0" VerticalAlignment="Top" Width="118" Click="Button_Click"/>
+                    <Button x:Name="Closebtn" Content="Close" HorizontalAlignment="Right" Height="29" Margin="85,0,0,0" VerticalAlignment="Top" Width="118" Click="Button_Click"/>
                 </StackPanel>
                     <TextBlock Name="ErrorTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" FontFamily="Segoe UI"/>
                     <TextBlock Name="connectionStatusTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
@@ -34,7 +34,7 @@
                     <TextBlock Name="subscriptionStatusTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top"/>
                     <TextBlock x:Name="subscriptionResultTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" Width="210" Grid.ColumnSpan="2"/>
                     <TextBlock x:Name="subscriptionResultTextBlock2" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" Width="210" Grid.ColumnSpan="2"/>
-                    <TextBlock Name="IAmBusyTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" FontFamily="Segoe UI"/>
+                    <!--<TextBlock Name="IAmBusyTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="" TextWrapping="NoWrap" VerticalAlignment="Top" FontFamily="Segoe UI"/>-->
 
 
             </StackPanel>

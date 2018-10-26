@@ -165,7 +165,7 @@ namespace Cadence
                 await GetAllServices();
                 if (NoError == false)
                 {
-                    ErrorTextBlock.Text = "Searching for a sensor";
+                    ErrorTextBlock.Text = "Sensor: Searching...";
                     //ErrorTextBlock.Text = "Error sensor!";
                     //ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
@@ -180,7 +180,7 @@ namespace Cadence
                 //await  GetInformationSensor();
                 if (NoError == false)
                 {
-                    ErrorTextBlock.Text = "Error sensor!";
+                    ErrorTextBlock.Text = "Sensor: Error!";
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                     if (SubscribeMeasurement == true)
                     {
@@ -193,7 +193,7 @@ namespace Cadence
                 await GetInformationSensor();
                 if (NoError == false)
                 {
-                    ErrorTextBlock.Text = "Error sensor!";
+                    ErrorTextBlock.Text = "Sensor: Error!";
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                     if (SubscribeMeasurement == true)
                     {
@@ -202,7 +202,7 @@ namespace Cadence
                     TimerConnectToSensor.Start();
                     return;
                 }
-                ErrorTextBlock.Text = "Found sensor";
+                ErrorTextBlock.Text = "Sensor: Found.";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 //<begincode*****get the value of the cadence counter and te time between two measurements*****>
                 cadence.ConnectionStatusChanged += Cadence_ConnectionStatusChanged;
@@ -233,7 +233,7 @@ namespace Cadence
 
                 //}
 
-                ErrorTextBlock.Text = "Searching for a sensor";
+                ErrorTextBlock.Text = "Sensor: Searching...";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 connectionStatusTextBlock.Text = "";
                 DeviceNameTextBlock.Text = "";
@@ -253,24 +253,10 @@ namespace Cadence
                 //await GetInformationSensor();
                 if (selectedDeviceInfoWrapper != null)
                 {
-                    //if (cadence == null)
-                    //{
-                    //    connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
-                    //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-
-                    //    //soms krijg heb ik een probleem bij het uitlezen van de services, met onderstaande regel probeer ik terug een connectie te maken
-                    //    TimerConnectToSensor.Start();
-                    //    return;
-                    //}
-                    //else
-                    //{
-                    //    connectionStatusTextBlock.Text = "Sensor: Connection established!";
-                    //    connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                    //}
                     await GetAllServices();
                     if (NoError == false)
                     {
-                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Text = "Sensor: Error!";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                         //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                         TimerConnectToSensor.Start();
@@ -280,7 +266,7 @@ namespace Cadence
                     //await GetInformationSensor();
                     if (NoError == false)
                     {
-                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Text = "Sensor: Error!";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                         //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                         TimerConnectToSensor.Start();
@@ -291,13 +277,13 @@ namespace Cadence
                     //await GetValuesSensor();
                     if (NoError == false)
                     {
-                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Text = "Sensor: Error!";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                         //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                         TimerConnectToSensor.Start();
                         return;
                     }
-                    ErrorTextBlock.Text = "Found sensor";
+                    ErrorTextBlock.Text = "Sensor: Found.";
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                     localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
                                                                                                                       //<begincode*****get the value of the cadence counter and te time between two measurements*****>
@@ -309,7 +295,7 @@ namespace Cadence
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
-                ErrorTextBlock.Text = "Error sensor!";
+                ErrorTextBlock.Text = "Sensor: Error!";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
             }
         }
@@ -317,7 +303,7 @@ namespace Cadence
         {
             try
             {
-                ErrorTextBlock.Text = "Searching for a sensor";
+                ErrorTextBlock.Text = "Sensor: Searching...";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 connectionStatusTextBlock.Text = "";
                 DeviceNameTextBlock.Text = "";
@@ -338,7 +324,7 @@ namespace Cadence
                     {
                         //ErrorTextBlock.Text = "Error sensor!";
                         //ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                        ErrorTextBlock.Text = "Searching for a sensor";
+                        ErrorTextBlock.Text = "Sensor: Searching...";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                         //characteristic2.ValueChanged -= Characteristic_ValueChanged;
                         TimerConnectToSensor.Start();
@@ -348,7 +334,7 @@ namespace Cadence
                     //await GetInformationSensor();
                     if (NoError == false)
                     {
-                        ErrorTextBlock.Text = "Error sensor!";
+                        ErrorTextBlock.Text = "Sensor: Error!";
                         ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                         TimerConnectToSensor.Start();
                         return;
@@ -363,7 +349,7 @@ namespace Cadence
                         TimerConnectToSensor.Start();
                         return;
                     }
-                    ErrorTextBlock.Text = "Found sensor";
+                    ErrorTextBlock.Text = "Sensor: Found.";
                     //Debug.WriteLine("3 sensor is " + cadence.ConnectionStatus.ToString());
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                     //<begincode*****get the value of the cadence counter and te time between two measurements*****>
@@ -374,7 +360,7 @@ namespace Cadence
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
-                ErrorTextBlock.Text = "Error sensor!";
+                ErrorTextBlock.Text = "Sensor: Error!";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.Red);
             }
         }
@@ -482,7 +468,7 @@ namespace Cadence
                             bool IsCadenceSensor = (Temp0[0] & (1 << 1)) != 0; //(myByte & (1 << position)) != 0 This works by using the Left Shift operator (<<) 
                             if (IsCadenceSensor == false)
                             {
-                                ErrorTextBlock.Text = "Error selected sensor has no cadence function ";
+                                ErrorTextBlock.Text = "Sensor: Error selected has no cadence function.";
                                 NoError = false;
                                 return;
                             }
@@ -542,7 +528,7 @@ namespace Cadence
                     BluetoothAddressHex = BluetoothAddressHex.Insert(i, ":");
                     i = i + 1;
                 }
-                BTAddresTextBlock.Text = "Bluetooth address = " + BluetoothAddressHex;
+                BTAddresTextBlock.Text = "Sensor: Bluetooth address = " + BluetoothAddressHex;
                 //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
                 if (cadence != null)
                 {
@@ -586,43 +572,6 @@ namespace Cadence
         {
             try
             {
-                //string BluetoothAddressHex = cadence.BluetoothAddress.ToString("x");  // convert decimal to hex
-                //for (int i = 2; i < BluetoothAddressHex.Length; i += 2) // om het leesbaar te houden plaatsen we om de 2 hex getallen een :
-                //{
-                //    BluetoothAddressHex = BluetoothAddressHex.Insert(i, ":");
-                //    i = i + 1;
-                //}
-                //BTAddresTextBlock.Text = "Bluetooth address = " + BluetoothAddressHex;
-                ////Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
-                //if (cadence != null)
-                //{
-                //    //<begincode***** get all services and putt them in the list of observableServices*****>
-                //     result = await cadence.GetGattServicesAsync();
-                //    if (result.Status == GattCommunicationStatus.Success)
-                //    {
-                //        //Debug.WriteLine("sensor is " + cadence.ConnectionStatus.ToString());
-                //        List<GattDeviceService> services = result.Services.ToList();
-                //        observableServices = new ObservableCollection<GattServiceWrapper>();
-                //        observableServices.Clear();
-                //        foreach (GattDeviceService service in services)
-                //        {
-                //            observableServices.Add(new GattServiceWrapper(service));
-                //        }
-                //        connectionStatusTextBlock.Text = "Sensor: Connection established!";
-                //        connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
-                //        TimerConnectToSensor.Stop();
-                //    }
-                //    else
-                //    {
-                //        Debug.WriteLine("could not read the services");
-                //        connectionStatusTextBlock.Text = "Sensor: Couldn't establish connection";
-                //        connectionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                //        NoError = false;
-                //        TimerConnectToSensor.Start();
-                //        return;
-                //    }
-                //    //<endcode***** get all services and putt them in the list of observableServices*****>
-
                 //<begincode***** select characteristic GenericAccess level and putt them in the list of observableCharacteristics*****>
                 var wrapper2 = observableServices.Single(i => i.Service.Uuid.ToString() == "00001800-0000-1000-8000-00805f9b34fb");
                 service2 = wrapper2.Service;
@@ -654,7 +603,7 @@ namespace Cadence
                     byte[] input = new byte[reader.UnconsumedBufferLength];
                     reader.ReadBytes(input);
                     string utf8result = System.Text.Encoding.UTF8.GetString(input);
-                    DeviceNameTextBlock.Text = "Device name = " + utf8result;
+                    DeviceNameTextBlock.Text = "Sensor: name = " + utf8result;
                 }
                 else
                 {
@@ -712,7 +661,7 @@ namespace Cadence
                     byte[] input = new byte[reader.UnconsumedBufferLength];
                     reader.ReadBytes(input);
                     string utf8result = System.Text.Encoding.UTF8.GetString(input);
-                    FirmwareTextBlock.Text = "Firmware Revision = " + utf8result;
+                    FirmwareTextBlock.Text = "Sensor: Firmware = " + utf8result;
                 }
                 else
                 {
@@ -738,7 +687,7 @@ namespace Cadence
                     foreach (byte b in input)
                         hex.AppendFormat("{0:x2}", b);
                     int Hardwarevalue = Convert.ToInt32(hex.ToString(), 16);
-                    HardwareTextBlock.Text = "Hardware Revision = " + Hardwarevalue.ToString();
+                    HardwareTextBlock.Text = "Sensor: Hardware Revision = " + Hardwarevalue.ToString();
                 }
                 else
                 {
@@ -781,8 +730,8 @@ namespace Cadence
                     foreach (byte b in input)
                         hex.AppendFormat("{0:x2}", b);
                     int Batteryvalue = Convert.ToInt32(hex.ToString(), 16);
-                    readingsTextBlock.Text = "Battery level = " + Batteryvalue.ToString() + "%";
-                    if (Batteryvalue < 60)
+                    readingsTextBlock.Text = "Sensor: Battery level = " + Batteryvalue.ToString() + "%";
+                    if (Batteryvalue < 40)
                     {
                         readingsTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                     }
@@ -845,13 +794,13 @@ namespace Cadence
                     {
                         // Server has been informed of clients interest.
                         SubscribeMeasurement = true;
-                        subscriptionStatusTextBlock.Text = "Measurement Subscribed to cadence sensor";
+                        subscriptionStatusTextBlock.Text = "Sensor: Measurement Subscribed.";
                         subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
                         characteristic2.ValueChanged += Characteristic_ValueChanged;
                     }
                     else
                     {
-                        subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
+                        subscriptionStatusTextBlock.Text = "Sensor: Measurement " + status.ToString();
                         subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                         Debug.WriteLine("could not subscribe to measurement");
                         NoError = false;
@@ -863,13 +812,13 @@ namespace Cadence
                     GattCommunicationStatus status = await characteristic2.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Indicate);
                     if (status == GattCommunicationStatus.Success)
                     {
-                        subscriptionStatusTextBlock.Text = "Measurement Subscribed to cadence sensor";
+                        subscriptionStatusTextBlock.Text = "Sensor: Measurement.";
                         subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Black);
                         characteristic2.ValueChanged += Characteristic_ValueChanged;
                     }
                     else
                     {
-                        subscriptionStatusTextBlock.Text = "Measurement cadence sensor " + status.ToString();
+                        subscriptionStatusTextBlock.Text = "Sensor: Measurement " + status.ToString();
                         subscriptionStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                         Debug.WriteLine("could not indicate to measurement");
                         NoError = false;
