@@ -12,7 +12,10 @@
         <!--<StackPanel Height="535" VerticalAlignment="Top">-->
             <StackPanel Orientation="Horizontal" Height="535">
                 <StackPanel Width="480" BorderBrush="Black" BorderThickness="2,2,0,2">
-                    <TextBlock Name="deviceListTextBlock" HorizontalAlignment="Left" Margin="30,0,0,0" Text="Choose bluetooth non paired device:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Name="deviceListTextBlock" HorizontalAlignment="Left" Margin="10,0,0,0" Text="Choose bluetooth non paired device:" TextWrapping="Wrap" VerticalAlignment ="Top" TextDecorations="Underline" FontSize="22"/>
+                <Button x:Name="Searchbtn" Content="Search" HorizontalAlignment="Right" Height="29" Margin="10,0,0,0" VerticalAlignment="Top" Width="100" Click="Searchbtn_Click"/>
+                </StackPanel>
                     <ListView x:Name="deviceListView" HorizontalAlignment="Left" Height="495" Margin="30,0,0,0" VerticalAlignment="Top" Width="402" ItemClick="deviceListView_ItemClick" IsItemClickEnabled="True">
                     <!--<ListView.KeyboardAccelerators>
                         <KeyboardAccelerator Key="Enter" Invoked="deviceListViewEnterKey" />
