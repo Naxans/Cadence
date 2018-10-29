@@ -41,7 +41,7 @@ namespace Cadence
 
         private bool NoError = true;
         private bool SubscribeMeasurement = false;
-        private bool StartOnce = false;
+        //private bool StartOnce = false;
         private int valueprevious;
         private int valuetimeprevious;
         private int valuetime;
@@ -79,7 +79,7 @@ namespace Cadence
         private string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.Devices.Aep.IsConnected" };
         private byte[] inputx;
 
-        //!!!!!de sensoren moeten non paired zijn!!!!
+        //!!!!!the sensors must be non-paired!!!!
         public MainPage()
         {
             try
@@ -221,21 +221,15 @@ namespace Cadence
             {
                 TimerConnectToSensor.Stop();
 
-                //onderstaande 6 regels moet ik doen als ik een andere sensor kies in de lijst, om te beletten dat de measurement charakerstiek blijft geabonneerd en daarom de waarde rotations krijgt van deze maar ook van de vorige sensor
+                //I have to do 7 rows of code below if I choose another sensor in the list, to avoid the fact that the measurement character string continues to subscribe and therefore gets the value rotations of this but also from the previous sensor
                 if (cadence != null && characteristic2 != null)
                 {
-                    //Debug.WriteLine(cadence.Name + " is dispose");
+                    //unsubscribe measurements characterstic2, is necessary to disconnect the existing measurement from the sensor, otherwise when re-opening the app or you choose another sensor we get an unstable measurement
+                    await characteristic2.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.None);
+                    characteristic2.Service.Dispose();
                     cadence.Dispose();
                     cadence = null;
-                    characteristic2.Service.Dispose();
-                   // characteristic2 = null;
                 }
-                //else if (cadence == null && characteristic2 != null && NoError == true)
-                //{
-                //        characteristic2.Service.Dispose();
-
-                //}
-
                 ErrorTextBlock.Text = "Sensor: Searching...";
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
                 connectionStatusTextBlock.Text = "";
@@ -289,8 +283,8 @@ namespace Cadence
                     }
                     ErrorTextBlock.Text = "Sensor: Found.";
                     ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                    localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //opslaan op de hardeschijf
-                                                                                                                      //<begincode*****get the value of the cadence counter and te time between two measurements*****>
+                    localSettings.Values["StorageBluetoothAddress"] = selectedDeviceInfoWrapper.DeviceInformation.Id; //save to the hard disk
+                    //<begincode*****get the value of the cadence counter and te time between two measurements*****>
                     cadence.ConnectionStatusChanged += Cadence_ConnectionStatusChanged;
                     //<endcode*****get the value of the cadence counter and te time between two measurements*****>
                 }
@@ -395,9 +389,9 @@ namespace Cadence
         {
             try
             {
-                //onderstaande bool TestDoubleDevices is om te beletten dat een ble device meer dan 1 keer in de lijst wordt geschreven
+                //The following TestDoubleDevices bool is to prevent a ble device from being written more than once in the list
                 bool DoubleDevices = false;
-                //in realtime wordt er gezocht naar bluetooth device die non paired zijn
+                //search in real-time for bluetooth device that are non-paired
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                 () =>
                 {
@@ -408,18 +402,10 @@ namespace Cadence
                             DoubleDevices = true;
                         }
                     }
-                    if (DoubleDevices == false && args.Name.Contains("Wahoo"))
+                    if (DoubleDevices == false && args.Name.Contains("CADENCE")) //filter only a cadence sens is permitted
                     {
                         informationOfFoundDevices.Add(new BluetoothInformationWrapper(args));
                     }
-                    //for (int i = 0; i < informationOfFoundDevices.Count; i += 1)
-                    //{
-                    //    if (informationOfFoundDevices[i].DeviceInformation.Id == StorageBluetoothAddress.ToString() && StartOnce == false)
-                    //    {
-                    //        StartOnce = true;
-                    //        AutoStart(i); //als bij de vorige keer nu deze sensor ook in de lijst verschijnt wordt deze automatisch geconnecteerd
-                    //    }
-                    //}
                     AutoStart();
                 });
             }
@@ -465,14 +451,14 @@ namespace Cadence
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                     () =>
                     {
-                        Temp0 = string.Format("{0:x}", inputx[0]);//converteren van decimaal naar hexadecimaal
+                        Temp0 = string.Format("{0:x}", inputx[0]);//convert from decimal to hexadecimal
                         Temp1 = string.Format("{0:x}", inputx[1]);
                         Temp2 = string.Format("{0:x}", inputx[2]);
                         Temp3 = string.Format("{0:x}", inputx[3]);
                         Temp4 = string.Format("{0:x}", inputx[4]);
-                        if (Temp0 != "0")//filter omdat soms Temp0 t/m Temp4 = 00:00:00:00:00
+                        if (Temp0 != "0")//filter because sometimes Temp0 t/m Temp4 = 00:00:00:00:00
                         {
-                            //controleert of de 2de bit tellend van rechts een 1 is, zo ja dan heeft de sensor een cadence funktie
+                            //checks whether the 2nd bit counting from the right is a 1, if so the sensor has a cadence function
                             bool IsCadenceSensor = (Temp0[0] & (1 << 1)) != 0; //(myByte & (1 << position)) != 0 This works by using the Left Shift operator (<<) 
                             if (IsCadenceSensor == false)
                             {
@@ -491,13 +477,10 @@ namespace Cadence
                             int deltavalue = value - valueprevious;
                             int deltavaluetime = valuetime - valuetimeprevious;
                             //  Debug.WriteLine(deltavalue + " " + deltavaluetime);
-                            //if (deltavaluetime > 0 && deltavalue > 0 && value > valueprevious && valuetime > valuetimeprevious)
-                            //{
                             if (deltavaluetime > 0 && deltavalue > 0)
                             {
-                                Rotationsresult = deltavalue * 1024f / deltavaluetime; //aantal toeren per tijdeenheid
-                                                                                       // x 60 gives amount of rotations per minute
-                                Rotationsresult = (int)(Rotationsresult * 60);
+                                Rotationsresult = deltavalue * 1024f / deltavaluetime; //rotations per unit of time
+                                Rotationsresult = (int)(Rotationsresult * 60);// x 60 gives amount of rotations per minute
                                 subscriptionResultTextBlock2.Text = "rotations per minute = " + Rotationsresult.ToString();
                                 secondtestnull = 0; //soms ook al zijn we aan het fietsen krijgen we de waarden alsof we niet meer trappen, resultaat is dat 1 x een nul verschijnt bij het aantal toeren per minut. vandaar dat we dan pas een nul laten zien als we twee keer de info krijgen dat er niet meer wordt gefietst
 
@@ -520,10 +503,6 @@ namespace Cadence
             catch (Exception ex)
             {
                 Debug.WriteLine("Fault Characteristic_ValueChanged " + ex);
-                Debug.WriteLine(inputx[0] + ":" + inputx[1] + ":" + inputx[2] + ":" + inputx[3] + ":" + inputx[4]);
-                Debug.WriteLine(Temp0 + ":" + Temp1 + ":" + Temp2 + ":" + Temp3 + ":" + Temp4);
-                //Debug.WriteLine("rotations = " + value);
-                //Debug.WriteLine("rotations / minute = " + valuetime);
             }
         }
         private async Task GetAllServices()
@@ -668,7 +647,6 @@ namespace Cadence
                 }
                 else
                 {
-                    //hier nog iets doen?
                     NoError = false;
                 }
                 //<endcode***** select characteristic device information and putt them in the list of observableCharacteristics*****>
@@ -748,10 +726,10 @@ namespace Cadence
                     reader = DataReader.FromBuffer(result3.Value);
                     byte[] input = new byte[reader.UnconsumedBufferLength];
                     reader.ReadBytes(input);
-                    StringBuilder hex = new StringBuilder(input.Length * 2);
+                    StringBuilder hex2 = new StringBuilder(input.Length * 2);
                     foreach (byte b in input)
-                        hex.AppendFormat("{0:x2}", b);
-                    int Batteryvalue = Convert.ToInt32(hex.ToString(), 16);
+                        hex2.AppendFormat("{0:x2}", b);
+                    int Batteryvalue = Convert.ToInt32(hex2.ToString(), 16);
                     readingsTextBlock.Text = "Sensor: Battery level = " + Batteryvalue.ToString() + "%";
                     if (Batteryvalue < 40)
                     {
@@ -769,13 +747,11 @@ namespace Cadence
                     return;
                 }
                 //<endcode*****read battery level*****>
-                //}
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("Fault GetInformationSensor " + ex);
                 NoError = false;
-
             }
         }
 
@@ -857,13 +833,20 @@ namespace Cadence
             }
         }
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        private async void CloseButton_Click(object sender, RoutedEventArgs e)
         {
+            if(characteristic2 != null) //unsubscribe measurements characterstic2, is necessary to disconnect the existing measurement from the sensor, otherwise when re-opening the app or you choose another sensor we get an unstable measurement
+            {
+                await characteristic2.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.None);
+                characteristic2.Service.Dispose();
+            }
             if (cadence != null)
             {
                 cadence.Dispose();
+                cadence = null;
             }
             deviceWatcher.Stop();
+            TimerConnectToSensor.Stop();
             Windows.UI.Xaml.Application.Current.Exit();
         }
     }
