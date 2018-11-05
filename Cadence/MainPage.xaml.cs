@@ -511,8 +511,6 @@ namespace Cadence
             {
                 //<begincode***** select characteristic GenericAccess level and putt them in the list of observableCharacteristics*****>
                 var wrapper2 = observableServices.Single(i => i.Service.Uuid.ToString() == "00001800-0000-1000-8000-00805f9b34fb");
-                //service2 = wrapper2.Service;
-                //result2 = await service2.GetCharacteristicsAsync();
                 result2 = await wrapper2.Service.GetCharacteristicsAsync();
 
                 if (result2.Status == GattCommunicationStatus.Success)
@@ -716,6 +714,7 @@ namespace Cadence
                 ErrorTextBlock.Text = "Sensor: Found.";
                 //Debug.WriteLine("3 sensor is " + cadence.ConnectionStatus.ToString());
                 ErrorTextBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                localSettings.Values["StorageBluetoothAddress"] = cadence.DeviceId; //save to harddisk
                 //<begincode*****get the value of the cadence counter and te time between two measurements*****>
                 cadence.ConnectionStatusChanged += Cadence_ConnectionStatusChanged;
                 //<endcode*****get the value of the cadence counter and te time between two measurements*****>
@@ -742,9 +741,15 @@ namespace Cadence
             Windows.UI.Xaml.Application.Current.Exit();
         }
 
-        private void Searchbtn_Click(object sender, RoutedEventArgs e)
+        private async void Searchbtn_Click(object sender, RoutedEventArgs e)
         {
-            deviceWatcher = DeviceInformation.CreateWatcher(BluetoothLEDevice.GetDeviceSelectorFromPairingState(false), requestedProperties, DeviceInformationKind.AssociationEndpoint);
+            //deviceWatcher = DeviceInformation.CreateWatcher(BluetoothLEDevice.GetDeviceSelectorFromPairingState(false), requestedProperties, DeviceInformationKind.AssociationEndpoint);
+            if (deviceWatcher.Status == DeviceWatcherStatus.Started)
+            {
+                deviceWatcher.Stop();
+                await Task.Delay(2000);
+                deviceWatcher.Start();
+            }
         }
     }
 }
